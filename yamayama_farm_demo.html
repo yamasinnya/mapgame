@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>やまやま牧場 - デモ</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/phaser/3.60.0/phaser.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0d1a05;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      min-height: 100vh; font-family: 'MS Gothic', monospace;
+    }
+    #game-wrap {
+      position: relative;
+      display: inline-block;
+    }
+    #game canvas { display: block; border: 3px solid #4a7a20; }
+    #controls { color: #a0c060; font-size: 12px; margin-top: 8px; }
+
+    /* ダイアログ (HTMLオーバーレイ) */
+    #dialog {
+      display: none;
+      position: absolute;
+      bottom: 6px; left: 6px; right: 6px;
+      background: #0d2200ee;
+      border: 2px solid #66cc33;
+      border-radius: 4px;
+      padding: 10px 14px 8px;
+      pointer-events: none;
+    }
+    #dialog-name {
+      color: #ffd700;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 6px;
+      text-shadow: 1px 1px 2px #000;
+    }
+    #dialog-text {
+      color: #e8ffcc;
+      font-size: 13px;
+      line-height: 1.6;
+      min-height: 44px;
+      white-space: pre-wrap;
+    }
+    #dialog-next {
+      text-align: right;
+      color: #88ff88;
+      font-size: 11px;
+      margin-top: 6px;
+      animation: blink 0.9s step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ゾーン表示 */
+    #zone-banner {
+      display: none;
+      position: absolute;
+      top: 10px; left: 10px;
+      background: #00000099;
+      border: 1px solid #88cc44;
+      border-radius: 3px;
+      padding: 5px 10px;
+      color: #ffd700;
+      font-size: 13px;
+      line-height: 1.5;
+      pointer-events: none;
+    }
+    /* バージョン */
+    #version-badge {
+      position: absolute;
+      bottom: 4px; right: 8px;
+      color: #ff8888;
+      font-size: 11px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+<div id="game-wrap">
+  <div id="game"></div>
+  <div id="dialog">
+    <div id="dialog-name">牧場主</div>
+    <div id="dialog-text"></div>
+    <div id="dialog-next">▼ スペースキーで次へ</div>
+  </div>
+  <div id="zone-banner"></div>
+  <div id="version-badge">v8</div>
+</div>
+<div id="controls">矢印キー / WASD で移動　|　NPCに近づいて スペース で話す</div>
+
+<script>
+const VERSION = 'v8';
+const TILE = 16;
+const MW = 50, MH = 44;
+
+const zones = [
+  { x:5,  y:30, w:14, h:9,  name:'① ゲルド平原',      elev:'標高 約160m', color:0x7ecb50 },
+  { x:24, y:30, w:18, h:9,  name:'② フィローネ草原',   elev:'標高 約150m', color:0x90d868 },
+  { x:17, y:21, w:12, h:9,  name:'③ ハイラル牧場本部', elev:'標高 約180m', color:0xc8b060 },
+  { x:14, y:12, w:20, h:10, name:'④ オルディン牧草地',  elev:'標高 約250〜300m', color:0x68c040 },
+  { x:2,  y:19, w:11, h:11, name:'⑤ 新森',            elev:'標高 約220m', color:0x2a6a28 },
+  { x:1,  y:7,  w:12, h:12, name:'⑥ 旧森',            elev:'標高 約250m', color:0x1e5220 },
+  { x:36, y:14, w:12, h:14, name:'⑦ アッカレ台地',     elev:'標高 約300m', color:0x98c858 },
+  { x:18, y:3,  w:18, h:10, name:'⑧ エウンポ台地',     elev:'標高 約360m', color:0xb0d070 },
+  { x:38, y:1,  w:10, h:11, name:'⑨ イタリアン峠',     elev:'標高 約400m', color:0x8aaa58 },
+  { x:3,  y:1,  w:22, h:8,  name:'⑩ タバンタ高原',     elev:'標高 約420m', color:0xb8c878 },
+];
+
+const NPC_DIALOG = [
+  'やあ！ここがハイラル牧場本部じゃ。\nよく来てくれた！',
+  'この牧場はな、もともと竹やぶだったんじゃ。\nそれを切り開いて、黒毛和牛を育てられる\n土地にしたんじゃよ。',
+  '今は繁殖をやっておる。\n子牛が生まれるとな、ほんとにかわいいもんじゃ。\nまろもよく見に来るんじゃよ。',
+  'いつかこの牧場全体を冒険できる\nゲームにしたいと思っておる。\n一緒に作ってくれる仲間、募集中じゃ！',
+];
+
+// HTMLダイアログ管理
+const dlgEl     = document.getElementById('dialog');
+const dlgText   = document.getElementById('dialog-text');
+const zoneBanner= document.getElementById('zone-banner');
+let dialogActive = false;
+let dialogIndex  = 0;
+let zoneBannerTimer = null;
+
+function openDialog() {
+  dialogActive = true;
+  dialogIndex  = 0;
+  dlgText.textContent = NPC_DIALOG[0];
+  dlgEl.style.display = 'block';
+}
+function nextDialog() {
+  dialogIndex++;
+  if (dialogIndex >= NPC_DIALOG.length) {
+    dlgEl.style.display = 'none';
+    dialogActive = false;
+  } else {
+    dlgText.textContent = NPC_DIALOG[dialogIndex];
+  }
+}
+function showZoneBanner(name, elev) {
+  zoneBanner.innerHTML = name + '<br><span style="font-size:11px;color:#ffee88">' + elev + '</span>';
+  zoneBanner.style.display = 'block';
+  if (zoneBannerTimer) clearTimeout(zoneBannerTimer);
+  zoneBannerTimer = setTimeout(() => { zoneBanner.style.display = 'none'; }, 3000);
+}
+
+function makeCharacter(scene, x, y, bodyColor, hatColor, showRing) {
+  const ring    = scene.add.circle(0, 0, 11, 0xffffff).setAlpha(showRing ? 0.85 : 0);
+  const shadow  = scene.add.ellipse(0, 9, 14, 6, 0x000000).setAlpha(0.25);
+  const legL    = scene.add.rectangle(-2.5, 7, 4, 6, Math.max(0, bodyColor - 0x222222));
+  const legR    = scene.add.rectangle( 2.5, 7, 4, 6, Math.max(0, bodyColor - 0x222222));
+  const body    = scene.add.rectangle(0, 1, 10, 9, bodyColor);
+  const armL    = scene.add.rectangle(-5, 0, 3, 6, 0xffbb88);
+  const armR    = scene.add.rectangle( 5, 0, 3, 6, 0xffbb88);
+  const head    = scene.add.rectangle(0, -6, 8, 8, 0xffcc99);
+  const hatBrim = scene.add.rectangle(0, -10, 12, 3, hatColor);
+  const hatTop  = scene.add.rectangle(0, -14, 7, 5, hatColor);
+  const eyeL    = scene.add.rectangle(-1.5, -6.5, 1, 1, 0x000000);
+  const eyeR    = scene.add.rectangle( 1.5, -6.5, 1, 1, 0x000000);
+
+  const container = scene.add.container(x, y, [
+    ring, shadow, legL, legR, body, armL, armR,
+    head, hatBrim, hatTop, eyeL, eyeR
+  ]).setDepth(25);
+
+  return { container, legL, legR };
+}
+
+class FarmScene extends Phaser.Scene {
+  constructor() { super('FarmScene'); }
+
+  create() {
+    // 背景
+    this.add.graphics().fillStyle(0x2a4a10).fillRect(0, 0, MW*TILE, MH*TILE);
+
+    // ゾーン
+    zones.forEach(z => {
+      const g = this.add.graphics();
+      g.fillStyle(z.color).fillRect(z.x*TILE, z.y*TILE, z.w*TILE, z.h*TILE);
+      g.lineStyle(1, 0xffffff, 0.2).strokeRect(z.x*TILE, z.y*TILE, z.w*TILE, z.h*TILE);
+      const cx = (z.x+z.w/2)*TILE, cy = (z.y+z.h/2)*TILE;
+      this.add.text(cx, cy-4, z.name, {
+        fontSize:'7px', color:'#fff', stroke:'#000', strokeThickness:2, align:'center'
+      }).setOrigin(0.5);
+      this.add.text(cx, cy+5, z.elev, {
+        fontSize:'5px', color:'#ffee88', stroke:'#000', strokeThickness:1, align:'center'
+      }).setOrigin(0.5);
+    });
+
+    // 道
+    const r = this.add.graphics().fillStyle(0x9a7840, 0.85);
+    r.fillRect(23*TILE, 32*TILE, 3*TILE, 8*TILE);
+    r.fillRect(23*TILE,  8*TILE, 3*TILE,24*TILE);
+    r.fillRect( 8*TILE, 25*TILE,18*TILE, 2*TILE);
+    r.fillRect(28*TILE, 20*TILE,10*TILE, 2*TILE);
+
+    // 建物
+    const b = this.add.graphics();
+    b.fillStyle(0x8b4a1a).fillRect(19*TILE,22*TILE,5*TILE,4*TILE);
+    b.fillStyle(0x5a3010).fillRect(19*TILE,21*TILE,5*TILE,1*TILE);
+    b.fillStyle(0xd8d8c0).fillRect(25*TILE,23*TILE,3*TILE,3*TILE);
+    b.fillStyle(0x888860).fillRect(25*TILE,22*TILE,3*TILE,1*TILE);
+
+    // 入口
+    const g2 = this.add.graphics().fillStyle(0x6a4010);
+    g2.fillRect(22*TILE,40*TILE,1*TILE,3*TILE);
+    g2.fillRect(26*TILE,40*TILE,1*TILE,3*TILE);
+    g2.fillRect(22*TILE,40*TILE,5*TILE,1*TILE);
+    this.add.text(24.5*TILE,43.5*TILE,'牧場入口',{fontSize:'6px',color:'#ffd700',stroke:'#000',strokeThickness:2}).setOrigin(0.5);
+
+    // 水場
+    this.add.graphics().fillStyle(0x4080d0,0.7).fillRect(14*TILE,24*TILE,2*TILE,8*TILE);
+
+    // プレイヤー
+    this.px = 24.5*TILE;
+    this.py = 38.0*TILE;
+    this.legPhase = 0;
+    this.legTimer = 0;
+    const p = makeCharacter(this, this.px, this.py, 0xdd2222, 0x6b3010, true);
+    this.player = p.container;
+    this.p_legL = p.legL;
+    this.p_legR = p.legR;
+
+    // NPC
+    this.npcX = 22.5*TILE;
+    this.npcY = 27.5*TILE;
+    const n = makeCharacter(this, this.npcX, this.npcY, 0x228855, 0x885522, false);
+    this.add.text(this.npcX, this.npcY-22, '牧場主', {
+      fontSize:'6px', color:'#ffd700', stroke:'#000', strokeThickness:2
+    }).setOrigin(0.5).setDepth(26);
+
+    // 会話アイコン（Phaser Text、ワールド座標）
+    this.talkIcon = this.add.text(this.npcX, this.npcY-30, '💬 スペース', {
+      fontSize:'6px', color:'#fff', stroke:'#000', strokeThickness:2
+    }).setOrigin(0.5).setDepth(26).setVisible(false);
+
+    // カメラ
+    this.cameras.main.setBounds(0,0,MW*TILE,MH*TILE);
+    this.cameras.main.setZoom(2.8);
+    this.cameras.main.startFollow(this.player, true, 0.12, 0.12);
+
+    // 入力
+    this.cursors = this.input.keyboard.createCursorKeys();
+    this.wasd = this.input.keyboard.addKeys({
+      up: Phaser.Input.Keyboard.KeyCodes.W,
+      down: Phaser.Input.Keyboard.KeyCodes.S,
+      left: Phaser.Input.Keyboard.KeyCodes.A,
+      right: Phaser.Input.Keyboard.KeyCodes.D,
+    });
+    this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE).on('down', () => {
+      if (dialogActive) {
+        nextDialog();
+      } else {
+        const dist = Phaser.Math.Distance.Between(this.px, this.py, this.npcX, this.npcY);
+        if (dist < 30) openDialog();
+      }
+    });
+
+    this.currentZone = null;
+  }
+
+  getZone() {
+    const tx = this.px/TILE, ty = this.py/TILE;
+    for (const z of zones)
+      if (tx>=z.x && tx<=z.x+z.w && ty>=z.y && ty<=z.y+z.h) return z;
+    return null;
+  }
+
+  update(time, delta) {
+    if (dialogActive) return;
+
+    const spd = 90;
+    let vx=0, vy=0;
+    if (this.cursors.left.isDown  || this.wasd.left.isDown)  vx=-spd;
+    if (this.cursors.right.isDown || this.wasd.right.isDown) vx= spd;
+    if (this.cursors.up.isDown    || this.wasd.up.isDown)    vy=-spd;
+    if (this.cursors.down.isDown  || this.wasd.down.isDown)  vy= spd;
+
+    const moving = vx!==0 || vy!==0;
+    if (moving) {
+      this.legTimer += delta;
+      if (this.legTimer > 200) { this.legPhase*=-1; this.legTimer=0; }
+    }
+    this.px = Phaser.Math.Clamp(this.px + vx*delta/1000, TILE, (MW-1)*TILE);
+    this.py = Phaser.Math.Clamp(this.py + vy*delta/1000, TILE, (MH-1)*TILE);
+    this.player.setPosition(this.px, this.py);
+    const lo = (moving && this.legPhase>0) ? 2 : -2;
+    this.p_legL.y = 7+(moving?lo:0);
+    this.p_legR.y = 7-(moving?lo:0);
+
+    // NPC近接
+    const dist = Phaser.Math.Distance.Between(this.px, this.py, this.npcX, this.npcY);
+    this.talkIcon.setVisible(dist < 30);
+
+    // ゾーン
+    const zone = this.getZone();
+    const zn = zone ? zone.name : null;
+    if (zn !== this.currentZone) {
+      this.currentZone = zn;
+      if (zone) showZoneBanner(zone.name, zone.elev);
+    }
+  }
+}
+
+new Phaser.Game({
+  type: Phaser.AUTO,
+  width: 800, height: 560,
+  backgroundColor: '#0d1a05',
+  parent: 'game',
+  scene: FarmScene,
+  render: { pixelArt: true },
+});
+</script>
+</body>
+</html>
