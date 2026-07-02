@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ハイラル草原 - 草集め（スキル拡張版）</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  background:#0a1a08; min-height:100vh;
+  font-family:'Georgia',serif;
+  display:flex; flex-direction:column; align-items:center;
+}
+#header {
+  width:100%; max-width:440px;
+  background:linear-gradient(135deg,#0f2a0a,#1a3a10);
+  border-bottom:2px solid #3a7a1a;
+  padding:10px 14px 8px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+#area-name { color:#a8d870; font-size:16px; letter-spacing:2px; }
+#area-sub  { color:#5a8a40; font-size:9px; margin-top:2px; }
+#day-badge {
+  background:#1a4a08; border:1px solid #4a8a28;
+  color:#88d050; font-size:11px; padding:3px 10px; border-radius:12px;
+}
+#mana-wrap {
+  width:100%; max-width:440px;
+  padding:7px 14px 6px; background:#0d1f0a;
+  border-bottom:1px solid #1a3a0a;
+  display:flex; align-items:center; gap:10px;
+}
+#mana-label { color:#88c050; font-size:11px; white-space:nowrap; }
+#mana-dots  { display:flex; gap:6px; flex:1; }
+.mdot {
+  width:20px; height:20px; border-radius:50%;
+  background:#1a3a10; border:2px solid #2a5a1a; transition:all 0.25s;
+}
+.mdot.on {
+  background:radial-gradient(circle,#a0ff60,#50c020);
+  border-color:#80ff40; box-shadow:0 0 7px #80ff4080;
+}
+#mana-msg { color:#cc5544; font-size:10px; white-space:nowrap; }
+#skill-wrap {
+  width:100%; max-width:440px; padding:0 14px 6px; background:#0d1f0a;
+}
+#skill-btn {
+  width:100%; padding:8px 0;
+  background:linear-gradient(135deg,#3a2a5a,#5a3a8a);
+  color:#e0d0ff; font-size:12px; font-weight:bold;
+  border:1.5px solid #8a6aca; border-radius:8px;
+  cursor:pointer; font-family:Georgia,serif;
+  box-shadow:0 0 8px #8a6aca55;
+}
+#skill-btn:disabled {
+  background:#2a2a2a; color:#666; border-color:#444;
+  box-shadow:none; cursor:default;
+}
+.card.peek {
+  outline:2px solid #d0a0ff;
+  box-shadow:0 0 10px #d0a0ffaa;
+}
+#passive-wrap {
+  width:100%; max-width:440px; padding:0 14px 6px; background:#0d1f0a;
+  display:flex; align-items:center; gap:8px;
+}
+#passive-label { color:#5a8a40; font-size:10px; white-space:nowrap; }
+#passive-icons { display:flex; gap:6px; }
+.passive-icon {
+  width:26px; height:26px; border-radius:50%;
+  background:#1a3a10; border:1.5px solid #3a6a20;
+  display:flex; align-items:center; justify-content:center;
+  font-size:14px; cursor:pointer;
+}
+#skill-tooltip {
+  display:none;
+  width:100%; max-width:440px;
+  background:#132a0a; border-top:1px solid #2a5a1a; border-bottom:1px solid #2a5a1a;
+  color:#c8e8a0; font-size:11px; line-height:1.6;
+  padding:8px 16px;
+}
+#skill-tooltip.show { display:block; }
+
+/* 牧童の目：ミスマッチ表示を長く見せている間の演出 */
+.card.lingering {
+  box-shadow:0 0 8px #ffd87088;
+}
+
+/* 刈り跡の記憶：翌日ヒントで薄く光る裏面 */
+.card.face-down.hinted {
+  background:#2a3a15;
+  border-color:#6a8a30;
+  box-shadow:0 0 6px #a8d87055;
+}
+#board-wrap {
+  width:100%; max-width:440px; padding:6px; background:#0a1a08; flex:1;
+}
+#board { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; }
+
+/* カード共通 */
+.card {
+  aspect-ratio:1; border-radius:5px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:clamp(12px,4vw,18px);
+  transition:transform 0.1s;
+  user-select:none;
+  position:relative;
+}
+.card:active { transform:scale(0.88); }
+
+/* 裏面：単色統一 */
+.card.face-down {
+  background:#173a10;
+  border:1.5px solid #2f5a20;
+}
+
+/* 表面：レア度で色分け（コモン/アンコ/レア） */
+.card.face-up.rarity-common    { background:#3a3a2a; border:1.5px solid #6a6a4a; }
+.card.face-up.rarity-uncommon  { background:#1a3a5a; border:1.5px solid #4a7aaa; box-shadow:0 0 6px #4a7aaa55; }
+.card.face-up.rarity-rare      { background:#5a2a5a; border:1.5px solid #cc70cc; box-shadow:0 0 10px #cc70cc77; }
+
+/* マッチ済み：刈り取り跡（土色・チェックマーク） */
+.card.matched {
+  background:#2a2015;
+  border:1.5px solid #4a3a28;
+  opacity:0.55;
+}
+.card.matched .check {
+  position:absolute; bottom:2px; right:3px;
+  font-size:9px; color:#8a7a5a;
+}
+
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-4px)}
+  75%{transform:translateX(4px)}
+}
+.card.wrong { animation:shake 0.35s ease; }
+
+#item-log {
+  width:100%; max-width:440px;
+  padding:7px 14px; background:#0a1a08; border-top:1px solid #1a3a0a;
+}
+#log-title { color:#4a7a30; font-size:10px; margin-bottom:5px; }
+#log-list  { display:flex; flex-wrap:wrap; gap:5px; min-height:24px; }
+.ichip {
+  border:1px solid; font-size:11px; padding:2px 9px; border-radius:12px;
+}
+.ichip.rarity-common   { background:#2a2a1e; border-color:#5a5a3e; color:#c8c8a0; }
+.ichip.rarity-uncommon { background:#122a42; border-color:#3a6a9a; color:#a0d0f0; }
+.ichip.rarity-rare     { background:#421a42; border-color:#aa50aa; color:#f0b0f0; }
+
+#btn-row {
+  width:100%; max-width:440px; padding:8px 14px 14px; display:flex; gap:8px;
+}
+.btn {
+  flex:1; padding:11px 0; color:#c8e8a0; font-size:13px; font-weight:bold;
+  border:none; border-radius:8px; cursor:pointer; font-family:Georgia,serif;
+  box-shadow:0 2px 8px #0005;
+}
+#btn-leave { background:linear-gradient(135deg,#2a5010,#3a7018); }
+#btn-reset { background:linear-gradient(135deg,#3a1008,#5a1a10); flex:0 0 auto; padding:11px 14px; font-size:12px; color:#e8c0a0; }
+
+#result {
+  display:none; position:fixed; inset:0;
+  background:#000b; align-items:center; justify-content:center; z-index:100;
+}
+#result.show { display:flex; }
+#rbox {
+  background:linear-gradient(135deg,#0f2a0a,#1a3a10);
+  border:2px solid #5a9a2a; border-radius:16px;
+  padding:22px 26px; text-align:center;
+  max-width:300px; width:88%; box-shadow:0 8px 32px #000a;
+}
+.rtitle { color:#a8d870; font-size:18px; margin-bottom:4px; }
+.rsub   { color:#5a8a40; font-size:11px; margin-bottom:10px; }
+#ritems { margin:8px 0 10px; }
+.rnote  { color:#4a7a30; font-size:11px; margin-bottom:14px; }
+.rbtn {
+  background:linear-gradient(135deg,#2a5010,#3a7018);
+  color:#c8e8a0; font-size:13px; font-weight:bold;
+  border:none; border-radius:8px; padding:10px 18px;
+  cursor:pointer; font-family:Georgia,serif; margin:4px;
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div id="area-name">🌿 ハイラル草原</div>
+    <div id="area-sub">牧場本部のすぐそば ─ 探索スキル習得済み</div>
+  </div>
+  <div id="day-badge">Day <span id="day-num">1</span></div>
+</div>
+
+<div id="mana-wrap">
+  <div id="mana-label">🔮 魔力</div>
+  <div id="mana-dots"></div>
+  <div id="mana-msg"></div>
+</div>
+<div id="skill-wrap">
+  <button id="skill-btn" onclick="useSkill()">🌀 回転斬り（開幕スキル・周囲9マスを一時的に見る）</button>
+</div>
+<div id="passive-wrap">
+  <div id="passive-label">習得スキル</div>
+  <div id="passive-icons">
+    <div class="passive-icon" onclick="showSkillInfo('boy')">👦</div>
+    <div class="passive-icon" onclick="showSkillInfo('trace')">🐾</div>
+    <div class="passive-icon" onclick="showSkillInfo('roku')">🔮</div>
+  </div>
+</div>
+<div id="skill-tooltip"></div>
+
+<div id="board-wrap"><div id="board"></div></div>
+
+<div id="item-log">
+  <div id="log-title">📦 本日の獲得アイテム</div>
+  <div id="log-list"><span style="color:#2a4a18;font-size:11px">ペアを揃えると素材が手に入る</span></div>
+</div>
+
+<div id="btn-row">
+  <button class="btn" id="btn-leave" onclick="leaveArea()">🏠 拠点に戻る</button>
+  <button class="btn" id="btn-reset" onclick="confirmReset()">🔄 新規</button>
+</div>
+
+<div id="result">
+  <div id="rbox">
+    <div class="rtitle">本日の探索終了</div>
+    <div class="rsub" id="rsub"></div>
+    <div id="ritems"></div>
+    <div class="rnote">獲得した草を牛に与えよう！<br>明日は盤面が半分入れ替わる。</div>
+    <button class="rbtn" onclick="nextDay()">翌日へ</button>
+    <button class="rbtn" style="background:linear-gradient(135deg,#3a1008,#5a1a10);color:#e8c0a0" onclick="confirmReset()">新しいフィールド</button>
+  </div>
+</div>
+
+<script>
+// ── レアリティ定義 ──
+// コモン70% / アンコモン27% / レア残り（2枚固定）
+const RARITIES = [
+  { key:'common',    label:'雑草',     emoji:'🌿', pairs:14 }, // 28枚
+  { key:'uncommon',  label:'良い牧草', emoji:'🌾', pairs:5  }, // 10枚
+  { key:'rare',      label:'幻の薬草', emoji:'✨', pairs:1  }, // 2枚
+];
+// ※コモンは複数「見た目バリエーション」を用意して単調にならないようにする
+const COMMON_VARIANTS = ['🌿','🍃','🍂']; // 表示だけの違い、価値は同じ扱いにしない
+// → やりすぎると複雑になるため、今回はコモンも1種類の絵柄に統一する
+// (COMMON_VARIANTS は将来の拡張用に残すが未使用)
+
+const MAX_MANA = 10;
+const SAVE_KEY = 'hairal_v3_lv3';
+const TOTAL_CARDS = 80; // 14*2 + 5*2 + 1*2 = 28+10+2 = 40枚... 調整して80枚に
+
+// 80枚になるよう調整: common 28pairs(56) + uncommon 11pairs(22) + rare 1pair(2) = 80
+const DECK_DEF = [
+  { key:'common',   label:'雑草',     emoji:'🌿', pairs:28 }, // 56枚 70%
+  { key:'uncommon', label:'良い牧草', emoji:'🌾', pairs:11 }, // 22枚 27.5%
+  { key:'rare',     label:'幻の薬草', emoji:'✨', pairs:1  }, // 2枚  2.5%
+];
+
+let deck = [];       // [{ri, matched}]
+let mana = MAX_MANA;
+let day  = 1;
+let todayItems = [];
+let firstSel   = null;
+let locked     = false;
+let skillUsedToday = false;
+let cardElsRef = []; // DOM参照を保持（スキルでのぞき見用）
+
+const SKILL_INFO = {
+  boy:   { name:'牧童の目',     desc:'ミスマッチした時、通常より長く（1.5秒）表面が見える。焦らず覚え直せる。' },
+  trace: { name:'刈り跡の記憶', desc:'前日に良い素材（アンコモン以上）を見つけた場所は、翌朝すでに刈り取られた状態で始まる（コストなしで自動収穫）。' },
+  roku:  { name:'第六感',       desc:'毎朝、アンコモンのカードがある場所を3箇所、直感的に感じ取れる（うっすら光る）。' },
+};
+
+function showSkillInfo(key) {
+  const info = SKILL_INFO[key];
+  const box = document.getElementById('skill-tooltip');
+  if (box.dataset.current === key && box.classList.contains('show')) {
+    box.classList.remove('show');
+    box.dataset.current = '';
+    return;
+  }
+  box.innerHTML = `<b>${info.name}</b><br>${info.desc}`;
+  box.classList.add('show');
+  box.dataset.current = key;
+}
+
+// ── デッキ生成 ──
+function generateDeck() {
+  const cards = [];
+  DECK_DEF.forEach((def, ri) => {
+    for (let k = 0; k < def.pairs * 2; k++) {
+      cards.push({ ri, matched:false });
+    }
+  });
+  shuffle(cards);
+  return cards;
+}
+function shuffle(arr) {
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+}
+
+// ── 翌日処理：半分だけ位置シャッフル ──
+function reshuffleHalf(excludeSet) {
+  excludeSet = excludeSet || new Set();
+  const n = deck.length;
+  const idxs = [...Array(n).keys()].filter(i => !excludeSet.has(i));
+  shuffle(idxs);
+  const half = idxs.slice(0, Math.floor(idxs.length/2)); // シャッフル対象の位置（除外分を除く）
+
+  const contents = half.map(i => deck[i]);
+  shuffle(contents);
+  half.forEach((pos, k) => { deck[pos] = contents[k]; });
+
+  // 除外位置以外は裏に戻す（matchedフラグ解除）
+  deck.forEach((c, idx) => { if (!excludeSet.has(idx)) c.matched = false; });
+}
+
+// ── 保存 / 読込 ──
+function save() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({ deck, day }));
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (!d || !d.deck) return false;
+    deck = d.deck;
+    day  = d.day || 1;
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── 魔力UI ──
+function updateManaUI() {
+  const wrap = document.getElementById('mana-dots');
+  wrap.innerHTML = '';
+  for (let i = 0; i < MAX_MANA; i++) {
+    const d = document.createElement('div');
+    d.className = 'mdot' + (i < mana ? ' on' : '');
+    wrap.appendChild(d);
+  }
+  document.getElementById('mana-msg').textContent = mana === 0 ? '魔力が尽きた' : '';
+  document.getElementById('day-num').textContent = day;
+}
+
+// ── ログ ──
+function updateLog() {
+  const list = document.getElementById('log-list');
+  if (todayItems.length === 0) {
+    list.innerHTML = '<span style="color:#2a4a18;font-size:11px">ペアを揃えると素材が手に入る</span>';
+    return;
+  }
+  const cnt = {};
+  todayItems.forEach(ri => {
+    const def = DECK_DEF[ri];
+    if (!cnt[ri]) cnt[ri] = { ...def, c:0 };
+    cnt[ri].c++;
+  });
+  list.innerHTML = Object.values(cnt)
+    .map(i => `<div class="ichip rarity-${i.key}">${i.emoji} ${i.label}${i.c>1?' ×'+i.c:''}</div>`)
+    .join('');
+}
+
+// ── カード表示 ──
+function renderFaceDown(el, hinted) {
+  el.className = 'card face-down' + (hinted ? ' hinted' : '');
+  el.innerHTML = '';
+}
+
+// ── 刈り跡の記憶：前日「自分がマッチさせた」アンコモン以上の位置を、翌朝は自動収穫済みにする ──
+let todayMatchedGoodPositions = new Set(); // 今日マッチさせたアンコモン以上の位置（idx）
+
+// ── 第六感：毎朝ランダムにアンコモン3箇所を光らせる（透視、その日限り） ──
+let hintPositions = new Set(); // 現在光っている位置（表示用）
+
+function pickSixthSenseHints() {
+  hintPositions = new Set();
+  const candidates = deck
+    .map((c, idx) => ({ idx, c }))
+    .filter(({c}) => !c.matched && DECK_DEF[c.ri].key === 'uncommon')
+    .map(({idx}) => idx);
+  shuffle(candidates);
+  candidates.slice(0, 3).forEach(idx => hintPositions.add(idx));
+}
+
+function applyHints() {
+  cardElsRef.forEach((el, idx) => {
+    if (!el) return;
+    if (deck[idx].matched) return;
+    if (el.classList.contains('face-down')) {
+      if (hintPositions.has(idx)) el.classList.add('hinted');
+      else el.classList.remove('hinted');
+    }
+  });
+}
+function renderFaceUp(el, c) {
+  const def = DECK_DEF[c.ri];
+  el.className = 'card face-up rarity-' + def.key;
+  el.innerHTML = def.emoji;
+}
+function renderMatched(el, c) {
+  const def = DECK_DEF[c.ri];
+  el.className = 'card matched';
+  el.innerHTML = def.emoji + '<span class="check">✓</span>';
+}
+
+// ── ボード描画 ──
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  cardElsRef = [];
+  deck.forEach((c, idx) => {
+    const el = document.createElement('div');
+    if (c.matched) {
+      renderMatched(el, c);
+    } else {
+      renderFaceDown(el, hintPositions.has(idx));
+      el.addEventListener('click', () => onCardClick(el, idx));
+    }
+    board.appendChild(el);
+    cardElsRef.push(el);
+  });
+  updateSkillBtn();
+}
+
+// ── スキルボタンの有効/無効表示 ──
+function updateSkillBtn() {
+  const btn = document.getElementById('skill-btn');
+  if (!btn) return;
+  if (skillUsedToday) {
+    btn.disabled = true;
+    btn.textContent = '🌀 回転斬り（本日は使用済み）';
+  } else {
+    btn.disabled = false;
+    btn.textContent = '🌀 回転斬り（開幕スキル・周囲9マスを一時的に見る）';
+  }
+}
+
+// ── 回転斬り：ランダムな3x3(最大9マス)を2秒間だけ見せる ──
+const BOARD_COLS = 8; // グリッド列数（CSSのgrid-template-columnsと一致させる）
+function useSkill() {
+  if (skillUsedToday || locked) return;
+  skillUsedToday = true;
+  updateSkillBtn();
+
+  // まだ未マッチのカードの中からランダムに中心を選ぶ
+  const openIdxs = deck.map((c,i)=>i).filter(i => !deck[i].matched);
+  if (openIdxs.length === 0) return;
+  const center = openIdxs[Math.floor(Math.random()*openIdxs.length)];
+  const cr = Math.floor(center / BOARD_COLS);
+  const cc = center % BOARD_COLS;
+
+  const targets = [];
+  for (let dr=-1; dr<=1; dr++) {
+    for (let dc=-1; dc<=1; dc++) {
+      const r = cr+dr, c = cc+dc;
+      if (r<0||c<0||c>=BOARD_COLS) continue;
+      const idx = r*BOARD_COLS + c;
+      if (idx<0 || idx>=deck.length) continue;
+      if (deck[idx].matched) continue;
+      targets.push(idx);
+    }
+  }
+
+  // 一時的に表面を見せる
+  targets.forEach(idx => {
+    const el = cardElsRef[idx];
+    if (!el) return;
+    renderFaceUp(el, deck[idx]);
+    el.classList.add('peek');
+  });
+
+  setTimeout(() => {
+    targets.forEach(idx => {
+      if (deck[idx].matched) return; // その間にマッチしていたら触らない
+      const el = cardElsRef[idx];
+      if (!el) return;
+      renderFaceDown(el);
+      el.classList.remove('peek');
+    });
+  }, 2000);
+}
+
+// ── タップ処理 ──
+function onCardClick(el, idx) {
+  if (locked) return;
+  if (mana <= 0) return;
+  if (deck[idx].matched) return;
+  if (firstSel && firstSel.idx === idx) {
+    renderFaceDown(el);
+    firstSel = null;
+    return;
+  }
+
+  renderFaceUp(el, deck[idx]);
+
+  if (!firstSel) {
+    firstSel = { el, idx };
+  } else {
+    locked = true;
+    mana--;
+    updateManaUI();
+
+    const fc = firstSel;
+    firstSel = null;
+
+    setTimeout(() => {
+      if (deck[fc.idx].ri === deck[idx].ri) {
+        deck[fc.idx].matched = true;
+        deck[idx].matched = true;
+        renderMatched(fc.el, deck[fc.idx]);
+        renderMatched(el, deck[idx]);
+
+        // 「刈り跡の記憶」用：アンコモン以上をマッチさせた位置を記録
+        const matchedDef = DECK_DEF[deck[idx].ri];
+        if (matchedDef.key === 'uncommon' || matchedDef.key === 'rare') {
+          todayMatchedGoodPositions.add(fc.idx);
+          todayMatchedGoodPositions.add(idx);
+        }
+
+        todayItems.push(deck[idx].ri);
+        updateLog();
+        save();
+        locked = false;
+        if (mana === 0) setTimeout(leaveArea, 400);
+      } else {
+        fc.el.classList.add('lingering');
+        el.classList.add('lingering');
+        // 「牧童の目」スキル：ミスマッチ時の表示時間を通常より延長
+        const LINGER_MS = 1500;
+        setTimeout(() => {
+          fc.el.classList.add('wrong');
+          el.classList.add('wrong');
+        }, LINGER_MS - 300);
+        setTimeout(() => {
+          renderFaceDown(fc.el);
+          renderFaceDown(el);
+          fc.el.classList.remove('wrong','lingering');
+          el.classList.remove('wrong','lingering');
+          locked = false;
+          if (mana === 0) leaveArea();
+          applyHints(); // 裏に戻したのでヒント表示を再適用
+        }, LINGER_MS);
+      }
+    }, 450);
+  }
+}
+
+// ── 帰還 ──
+function leaveArea() {
+  document.getElementById('rsub').textContent =
+    `Day ${day} の探索終了（使用魔力 ${MAX_MANA-mana}/${MAX_MANA}）`;
+  const box = document.getElementById('ritems');
+  if (todayItems.length === 0) {
+    box.innerHTML = '<div style="color:#4a7a30;font-size:13px;margin:8px 0">今日は何も手に入らなかった...</div>';
+  } else {
+    const cnt = {};
+    todayItems.forEach(ri => {
+      const def = DECK_DEF[ri];
+      if (!cnt[ri]) cnt[ri] = { ...def, c:0 };
+      cnt[ri].c++;
+    });
+    box.innerHTML = Object.values(cnt)
+      .map(i => `<div style="color:#a8d870;font-size:14px;margin:4px 0">${i.emoji} ${i.label} × ${i.c}</div>`)
+      .join('');
+  }
+  document.getElementById('result').classList.add('show');
+}
+
+// ── 翌日：半分シャッフル ──
+function nextDay() {
+  document.getElementById('result').classList.remove('show');
+  day++;
+  mana = MAX_MANA;
+  firstSel = null;
+  locked = false;
+  skillUsedToday = false;
+
+  // 「刈り跡の記憶」：前日マッチさせた良い位置の中身を確定させ、シャッフル対象から除外
+  const carried = Array.from(todayMatchedGoodPositions).map(idx => ({ idx, ri: deck[idx].ri }));
+  todayMatchedGoodPositions = new Set();
+
+  reshuffleHalf(new Set(carried.map(c => c.idx)));
+
+  // 除外した位置は元の中身のまま「自動収穫済み」として復元
+  const autoHarvested = [];
+  carried.forEach(({idx, ri}) => {
+    deck[idx].ri = ri;
+    deck[idx].matched = true;
+    autoHarvested.push(ri);
+  });
+
+  // 新しい1日のログを、自動収穫分からスタート
+  todayItems = [...autoHarvested];
+
+  // 「第六感」：新しい盤面に対してアンコモン3箇所を再抽選
+  pickSixthSenseHints();
+
+  save();
+  renderBoard();
+  updateManaUI();
+  updateLog();
+}
+
+// ── リセット ──
+function confirmReset() {
+  if (!confirm('フィールドをリセットしますか？\n（進捗がすべて消えます）')) return;
+  localStorage.removeItem(SAVE_KEY);
+  document.getElementById('result').classList.remove('show');
+  start();
+}
+
+// ── 起動 ──
+function start() {
+  if (!load()) {
+    deck = generateDeck();
+    day  = 1;
+    save();
+  }
+  mana = MAX_MANA;
+  todayItems = [];
+  firstSel = null;
+  locked = false;
+  skillUsedToday = false;
+  todayMatchedGoodPositions = new Set();
+  pickSixthSenseHints();
+  renderBoard();
+  updateManaUI();
+  updateLog();
+}
+
+start();
+</script>
+</body>
+</html>
