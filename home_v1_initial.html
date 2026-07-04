@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>やまやま牧場 - ホーム画面【初期状態】</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0a1506; min-height:100vh;
+  font-family:'Hiragino Kaku Gothic ProN','MS Gothic',sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+}
+h2 {
+  color:#c8a030; font-size:13px; letter-spacing:2px;
+  padding:10px 0 4px; text-align:center;
+}
+.screen-wrap {
+  width:100%; max-width:440px;
+  position:relative;
+  overflow:hidden;
+  aspect-ratio: 941 / 1350;
+}
+.bg-img {
+  position:absolute; top:0; left:0;
+  width:100%; display:block;
+}
+
+/* 配置物（ドット素材） */
+.placed {
+  position:absolute;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 6px 4px rgba(0,0,0,0.35));
+}
+.shadow-blob {
+  position:absolute;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 70%);
+  border-radius:50%;
+}
+
+/* 牛舎（小） */
+.gyusha-small { left:22%; top:54%; width:26%; z-index:2; }
+.gyusha-small-shadow { left:23%; top:68%; width:22%; height:6.5%; z-index:1; }
+
+/* 軽トラック */
+.keitora { left:56%; top:62%; width:20%; z-index:3; }
+.keitora-shadow { left:57%; top:70%; width:18%; height:5%; z-index:1; }
+
+/* トップUI */
+.topbar {
+  position:absolute; top:0; left:0; right:0;
+  padding:8px 12px;
+  background:linear-gradient(180deg,#000000aa 0%,transparent 100%);
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:10;
+}
+.top-item {
+  display:flex; align-items:center; gap:4px;
+  font-size:16px; color:#f0ffe0; font-weight:bold;
+  text-shadow:1px 1px 3px #000;
+}
+.top-day { color:#ffd060; font-size:15px; text-shadow:1px 1px 3px #000; }
+
+/* 下部ボタン群 */
+.bottom-ui {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:8px 12px 12px;
+  background:linear-gradient(0deg,#000000cc 0%,transparent 100%);
+  z-index:10;
+}
+.btn-main {
+  width:100%; padding:13px 0;
+  background:linear-gradient(135deg,#2a5a10dd,#3a8018dd);
+  color:#d8f8a0; font-size:19px; font-weight:bold;
+  border:1.5px solid #5a9a28; border-radius:12px;
+  cursor:pointer; font-family:inherit; letter-spacing:1px;
+  margin-bottom:8px;
+  box-shadow:0 2px 12px #00000066;
+}
+.sub-row {
+  display:flex; gap:6px;
+}
+.btn-sub {
+  flex:1; padding:8px 0;
+  background:#0a2008cc; color:#90c060;
+  font-size:14px; border:1px solid #2a5010;
+  border-radius:8px; cursor:pointer; font-family:inherit;
+  text-align:center;
+}
+
+/* ラベル */
+.label-tag {
+  position:absolute; top:8px; left:50%;
+  transform:translateX(-50%);
+  background:#0008; color:#ffd060;
+  font-size:10px; padding:2px 10px; border-radius:10px;
+  white-space:nowrap;
+  z-index:11;
+}
+</style>
+</head>
+<body>
+
+<h2>📱 ホーム画面案　【初期状態】牛舎（小）・軽トラのみ</h2>
+
+<div class="screen-wrap">
+  <img class="bg-img" src="mapback.png" alt="牧場背景">
+
+  <div class="shadow-blob gyusha-small-shadow"></div>
+  <img class="placed gyusha-small" src="assets/sprites/gyusha_small.png" alt="牛舎（小）">
+
+  <div class="shadow-blob keitora-shadow"></div>
+  <img class="placed keitora" src="assets/sprites/keitora.png" alt="軽トラック">
+
+  <div class="label-tag">【初期】1年目　春　Day 1</div>
+
+  <div class="topbar">
+    <div style="width:1px"></div>
+    <div style="display:flex;gap:12px">
+      <div class="top-item">
+        <span>🌿 0</span>
+      </div>
+      <div class="top-item">
+        <span>💰 50G</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-ui">
+    <button class="btn-main">🌿 餌を集めにいく</button>
+    <div class="sub-row">
+      <button class="btn-sub">🐄 牛舎</button>
+      <button class="btn-sub">🏪 ショップ</button>
+      <button class="btn-sub">📖 日誌</button>
+      <button class="btn-sub">🔑 呪文</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
