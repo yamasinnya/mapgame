@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>やまやま牧場 - 餌やり</title>
+<link rel="stylesheet" href="assets/css/common.css">
+<style>
+.condition-note { color:#ffd060; font-size:15px; line-height:1.8; margin:8px 0 0; }
+</style>
+</head>
+<body>
+
+<div class="screen-wrap">
+  <div class="screen-title" id="title"></div>
+  <img class="screen-gif" src="cow_feeding.gif" alt="餌やり">
+  <!-- 今後：牛のステータスUP演出をここに追加予定 -->
+  <div class="condition-note" id="condition-note"></div>
+  <div class="screen-note" id="note"></div>
+  <button class="btn-main" id="btn-next"></button>
+</div>
+
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+(async function () {
+  await loadDict();
+
+  const state = loadLoopState();
+
+  // 草ポイント→体調変動（設計まとめ.md「草と体調の関係」の表に対応。if文でベタ書き、JSON化はしない）
+  const grassPerCow = state.cows.length ? state.grassStock / state.cows.length : 0;
+  let conditionDelta = 0;
+  if (grassPerCow <= 3) conditionDelta = -1;
+  else if (grassPerCow >= 9) conditionDelta = 1;
+  // 4〜8ptはconditionDelta=0（維持）
+
+  let conditionNote = '';
+  if (conditionDelta !== 0) {
+    state.cows.forEach(cow => {
+      cow.condition = Math.max(1, Math.min(10, cow.condition + conditionDelta));
+    });
+    conditionNote = state.cows[0].name + (conditionDelta > 0 ? t('condition_up') : t('condition_down'));
+  }
+  state.grassStock = 0;
+  saveLoopState(state);
+
+  document.getElementById('title').textContent = t('feeding_title');
+  document.getElementById('condition-note').textContent = conditionNote;
+  document.getElementById('note').textContent = t('feeding_note');
+
+  const btn = document.getElementById('btn-next');
+  btn.textContent = t('btn_next');
+  btn.addEventListener('click', () => { location.href = 'date_change.html'; });
+})();
+</script>
+
+</body>
+</html>

@@ -3,17 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>やまやま牧場 - ホーム画面【遠近感】</title>
+<title>やまやま牧場 - ホーム</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
   background:#0a1506; min-height:100vh;
   font-family:'Hiragino Kaku Gothic ProN','MS Gothic',sans-serif;
   display:flex; flex-direction:column; align-items:center;
-}
-h2 {
-  color:#c8a030; font-size:13px; letter-spacing:2px;
-  padding:10px 0 4px; text-align:center;
 }
 .screen-wrap {
   width:100%; max-width:440px;
@@ -48,10 +44,9 @@ h2 {
 }
 .top-item {
   display:flex; align-items:center; gap:4px;
-  font-size:16px; color:#f0ffe0; font-weight:bold;
+  font-size:15px; color:#f0ffe0; font-weight:bold;
   text-shadow:1px 1px 3px #000;
 }
-.top-day { color:#ffd060; font-size:15px; text-shadow:1px 1px 3px #000; }
 
 /* 下部ボタン群 */
 .bottom-ui {
@@ -92,8 +87,6 @@ h2 {
 </style>
 </head>
 <body>
-
-<h2>📱 ホーム画面案　【遠近感】奥に建物・手前に車両と牛</h2>
 
 <div class="screen-wrap">
   <img class="bg-img" src="mapback.png" alt="牧場背景">
@@ -136,22 +129,19 @@ h2 {
   <div class="shadow-blob" style="left:79.28%; top:77.80%; width:13.60%; height:2.32%;"></div>
   <img class="placed" style="left:78%; top:71%; width:16%;" src="assets/sprites/cow_mother.png" alt="母牛">
 
-  <div class="label-tag">【遠近感】3年目　冬　Day 214</div>
+  <div class="label-tag" id="date-label"></div>
 
   <div class="topbar">
     <div style="width:1px"></div>
-    <div style="display:flex;gap:12px">
-      <div class="top-item">
-        <span>🌿 450</span>
-      </div>
-      <div class="top-item">
-        <span>💰 12,400G</span>
-      </div>
+    <div style="display:flex;gap:10px">
+      <div class="top-item"><span id="stat-condition"></span></div>
+      <div class="top-item"><span id="stat-grass">🌿 0</span></div>
+      <div class="top-item"><span id="stat-money">💰 0G</span></div>
     </div>
   </div>
 
   <div class="bottom-ui">
-    <button class="btn-main">🌿 餌を集めにいく</button>
+    <button class="btn-main" id="btn-explore"></button>
     <div class="sub-row">
       <button class="btn-sub">🐄 牛舎</button>
       <button class="btn-sub">🏪 ショップ</button>
@@ -160,6 +150,27 @@ h2 {
     </div>
   </div>
 </div>
+
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+(async function () {
+  await loadDict();
+  const state = loadLoopState();
+  const date = formatDate(state.day);
+
+  document.getElementById('date-label').textContent =
+    `${date.text}（Day ${state.day}）`;
+  document.getElementById('stat-condition').textContent =
+    `🔮 ${calcTotalMagic(state.cows)}（${conditionToLabel(state.cows[0].condition)}）`;
+  document.getElementById('stat-grass').textContent = `🌿 ${state.grassStock}`;
+  document.getElementById('stat-money').textContent = `💰 ${state.money}G`;
+
+  const btn = document.getElementById('btn-explore');
+  btn.textContent = t('go_explore');
+  btn.addEventListener('click', () => { location.href = 'explore.html'; });
+})();
+</script>
 
 </body>
 </html>

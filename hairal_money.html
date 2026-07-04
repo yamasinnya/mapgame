@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ハイラル草原 - 草集め</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body {
+  background:#0a1a08; min-height:100vh;
+  font-family:'Georgia',serif;
+  display:flex; flex-direction:column; align-items:center;
+}
+#header {
+  width:100%; max-width:440px;
+  background:linear-gradient(135deg,#0f2a0a,#1a3a10);
+  border-bottom:2px solid #3a7a1a;
+  padding:10px 14px 8px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+#area-name { color:#a8d870; font-size:16px; letter-spacing:2px; }
+#area-sub  { color:#5a8a40; font-size:9px; margin-top:2px; }
+#day-badge {
+  background:#1a4a08; border:1px solid #4a8a28;
+  color:#88d050; font-size:11px; padding:3px 10px; border-radius:12px;
+}
+/* 魔力 */
+#mana-wrap {
+  width:100%; max-width:440px;
+  padding:6px 14px 5px; background:#0d1f0a;
+  border-bottom:1px solid #1a3a0a;
+  display:flex; align-items:center; gap:10px;
+}
+#mana-label { color:#88c050; font-size:11px; white-space:nowrap; }
+#mana-dots  { display:flex; gap:6px; flex:1; }
+.mdot {
+  width:20px; height:20px; border-radius:50%;
+  background:#1a3a10; border:2px solid #2a5a1a; transition:all 0.25s;
+}
+.mdot.on {
+  background:radial-gradient(circle,#a0ff60,#50c020);
+  border-color:#80ff40; box-shadow:0 0 7px #80ff4080;
+}
+#mana-msg { color:#cc5544; font-size:10px; white-space:nowrap; }
+/* コイン */
+#coin-wrap {
+  width:100%; max-width:440px;
+  padding:5px 14px; background:#0d1f0a;
+  border-bottom:1px solid #1a3a0a;
+  display:flex; align-items:center; gap:8px;
+  position:relative; overflow:visible;
+}
+#coin-label  { color:#c8a030; font-size:11px; }
+#coin-amount { color:#ffd060; font-size:14px; font-weight:bold; }
+#coin-today  { color:#8a7020; font-size:10px; }
+#coin-popup {
+  position:absolute; left:50%; top:-4px;
+  transform:translateX(-50%);
+  color:#ffd700; font-size:15px; font-weight:bold;
+  font-family:Georgia,serif;
+  pointer-events:none; opacity:0;
+  text-shadow:0 0 8px #ffd700aa;
+  white-space:nowrap;
+}
+@keyframes coinpop {
+  0%   { opacity:1; transform:translateX(-50%) translateY(0); }
+  80%  { opacity:1; }
+  100% { opacity:0; transform:translateX(-50%) translateY(-28px); }
+}
+.pop { animation:coinpop 1s ease forwards; }
+/* ボード */
+#board-wrap { width:100%; max-width:440px; padding:6px; background:#0a1a08; flex:1; }
+#board { display:grid; grid-template-columns:repeat(8,1fr); gap:4px; }
+/* カード */
+.card {
+  aspect-ratio:1; border-radius:5px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:clamp(11px,3.8vw,17px);
+  transition:transform 0.1s; user-select:none; position:relative;
+}
+.card:active { transform:scale(0.88); }
+.card.face-down { background:#173a10; border:1.5px solid #2f5a20; }
+.card.face-up.rarity-common   { background:#3a3a2a; border:1.5px solid #6a6a4a; }
+.card.face-up.rarity-uncommon { background:#1a3a5a; border:1.5px solid #4a7aaa; box-shadow:0 0 6px #4a7aaa55; }
+.card.face-up.rarity-rare     { background:#5a2a5a; border:1.5px solid #cc70cc; box-shadow:0 0 10px #cc70cc77; }
+.card.matched { background:#2a2015; border:1.5px solid #4a3a28; opacity:0.55; }
+.card.matched .check { position:absolute; bottom:2px; right:3px; font-size:9px; color:#8a7a5a; }
+/* コインバッジ */
+.coin-badge {
+  position:absolute; top:1px; right:1px;
+  font-size:8px; line-height:1;
+  background:#b8900a88; border-radius:3px;
+  padding:1px 2px; color:#ffd060;
+  pointer-events:none;
+}
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
+.card.wrong { animation:shake 0.35s ease; }
+/* アイテムログ */
+#item-log { width:100%; max-width:440px; padding:6px 14px; background:#0a1a08; border-top:1px solid #1a3a0a; }
+#log-title { color:#4a7a30; font-size:10px; margin-bottom:4px; }
+#log-list  { display:flex; flex-wrap:wrap; gap:5px; min-height:22px; }
+.ichip { border:1px solid; font-size:11px; padding:2px 8px; border-radius:12px; }
+.ichip.rarity-common   { background:#2a2a1e; border-color:#5a5a3e; color:#c8c8a0; }
+.ichip.rarity-uncommon { background:#122a42; border-color:#3a6a9a; color:#a0d0f0; }
+.ichip.rarity-rare     { background:#421a42; border-color:#aa50aa; color:#f0b0f0; }
+/* ボタン */
+#btn-row { width:100%; max-width:440px; padding:8px 14px 14px; display:flex; gap:8px; }
+.btn { flex:1; padding:11px 0; color:#c8e8a0; font-size:13px; font-weight:bold; border:none; border-radius:8px; cursor:pointer; font-family:Georgia,serif; box-shadow:0 2px 8px #0005; }
+#btn-leave { background:linear-gradient(135deg,#2a5010,#3a7018); }
+#btn-reset { background:linear-gradient(135deg,#3a1008,#5a1a10); flex:0 0 auto; padding:11px 14px; font-size:12px; color:#e8c0a0; }
+/* リザルト */
+#result { display:none; position:fixed; inset:0; background:#000b; align-items:center; justify-content:center; z-index:100; }
+#result.show { display:flex; }
+#rbox { background:linear-gradient(135deg,#0f2a0a,#1a3a10); border:2px solid #5a9a2a; border-radius:16px; padding:22px 26px; text-align:center; max-width:300px; width:88%; box-shadow:0 8px 32px #000a; }
+.rtitle { color:#a8d870; font-size:18px; margin-bottom:4px; }
+.rsub   { color:#5a8a40; font-size:11px; margin-bottom:10px; }
+#ritems { margin:8px 0 10px; }
+.rnote  { color:#4a7a30; font-size:11px; margin-bottom:14px; }
+.rbtn { background:linear-gradient(135deg,#2a5010,#3a7018); color:#c8e8a0; font-size:13px; font-weight:bold; border:none; border-radius:8px; padding:10px 18px; cursor:pointer; font-family:Georgia,serif; margin:4px; }
+#rcoin { color:#ffd060; font-size:14px; margin:6px 0; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div id="area-name">🌿 ハイラル草原</div>
+    <div id="area-sub">牧場本部のすぐそば ─ 初心者向けエリア</div>
+  </div>
+  <div id="day-badge">Day <span id="day-num">1</span></div>
+</div>
+
+<div id="mana-wrap">
+  <div id="mana-label">🔮 魔力</div>
+  <div id="mana-dots"></div>
+  <div id="mana-msg"></div>
+</div>
+
+<div id="coin-wrap">
+  <div id="coin-label">💰 所持金</div>
+  <div id="coin-amount">0 G</div>
+  <div id="coin-today"></div>
+  <div id="coin-popup"></div>
+</div>
+
+<div id="board-wrap"><div id="board"></div></div>
+
+<div id="item-log">
+  <div id="log-title">📦 本日の獲得アイテム</div>
+  <div id="log-list"><span style="color:#2a4a18;font-size:11px">ペアを揃えると素材が手に入る</span></div>
+</div>
+
+<div id="btn-row">
+  <button class="btn" id="btn-leave" onclick="leaveArea()">🏠 拠点に戻る</button>
+  <button class="btn" id="btn-reset" onclick="confirmReset()">🔄 新規</button>
+</div>
+
+<div id="result">
+  <div id="rbox">
+    <div class="rtitle">本日の探索終了</div>
+    <div class="rsub" id="rsub"></div>
+    <div id="rcoin"></div>
+    <div id="ritems"></div>
+    <div class="rnote">獲得した草を牛に与えよう！<br>明日またここから再開できる。</div>
+    <button class="rbtn" onclick="nextDay()">翌日へ</button>
+    <button class="rbtn" style="background:linear-gradient(135deg,#3a1008,#5a1a10);color:#e8c0a0" onclick="confirmReset()">新しいフィールド</button>
+  </div>
+</div>
+
+<script>
+const DECK_DEF = [
+  { key:'common',   label:'雑草',     emoji:'🌿', pairs:28 },
+  { key:'uncommon', label:'良い牧草', emoji:'🌾', pairs:11 },
+  { key:'rare',     label:'幻の薬草', emoji:'✨', pairs:1  },
+];
+const MAX_MANA = 6;
+const SAVE_KEY = 'hairal_money_v1';
+const COIN_SLOTS = 40; // 80枚中コインを仕込むマス数
+
+let deck = [], mana = MAX_MANA, day = 1;
+let todayItems = [], todayCoins = 0, totalCoins = 0;
+let firstSel = null, locked = false;
+
+// ── シャッフル ──
+function shuffle(arr) {
+  for (let i = arr.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]] = [arr[j],arr[i]];
+  }
+}
+
+// ── デッキ生成（コイン付き） ──
+function generateDeck() {
+  const cards = [];
+  DECK_DEF.forEach((def, ri) => {
+    for (let k = 0; k < def.pairs * 2; k++) {
+      cards.push({ ri, matched:false, coin:0, coinClaimed:false });
+    }
+  });
+  // 40マスにランダムでコインを仕込む
+  const idxs = cards.map((_,i)=>i);
+  shuffle(idxs);
+  idxs.slice(0, COIN_SLOTS).forEach(i => {
+    cards[i].coin = 10 + Math.floor(Math.random() * 21); // 10〜30G
+  });
+  shuffle(cards);
+  return cards;
+}
+
+// ── 保存 / 読込 ──
+function save() {
+  localStorage.setItem(SAVE_KEY, JSON.stringify({ deck, day, totalCoins }));
+}
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (!d || !d.deck) return false;
+    deck = d.deck; day = d.day||1; totalCoins = d.totalCoins||0;
+    return true;
+  } catch(e) { return false; }
+}
+
+// ── 魔力UI ──
+function updateManaUI() {
+  const wrap = document.getElementById('mana-dots');
+  wrap.innerHTML = '';
+  for (let i=0; i<MAX_MANA; i++) {
+    const d = document.createElement('div');
+    d.className = 'mdot'+(i<mana?' on':'');
+    wrap.appendChild(d);
+  }
+  document.getElementById('mana-msg').textContent = mana===0 ? '魔力が尽きた' : '';
+  document.getElementById('day-num').textContent = day;
+}
+
+// ── コインUI ──
+function updateCoinUI() {
+  document.getElementById('coin-amount').textContent = totalCoins.toLocaleString()+' G';
+  document.getElementById('coin-today').textContent = todayCoins>0 ? '(本日 +'+todayCoins+'G)' : '';
+}
+
+function showCoinPopup(amount) {
+  const el = document.getElementById('coin-popup');
+  el.textContent = '+'+amount+'G 💰';
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+// ── ログ ──
+function updateLog() {
+  const list = document.getElementById('log-list');
+  if (todayItems.length===0) {
+    list.innerHTML = '<span style="color:#2a4a18;font-size:11px">ペアを揃えると素材が手に入る</span>';
+    return;
+  }
+  const cnt={};
+  todayItems.forEach(ri => { if(!cnt[ri]) cnt[ri]={...DECK_DEF[ri],c:0}; cnt[ri].c++; });
+  list.innerHTML = Object.values(cnt).map(i=>`<div class="ichip rarity-${i.key}">${i.emoji} ${i.label}${i.c>1?' ×'+i.c:''}</div>`).join('');
+}
+
+// ── カード描画 ──
+function renderFaceDown(el) {
+  el.className='card face-down';
+  el.innerHTML='';
+}
+function renderFaceUp(el, c) {
+  const def=DECK_DEF[c.ri];
+  el.className='card face-up rarity-'+def.key;
+  el.innerHTML=def.emoji;
+  // コインバッジ（仕込みあり・未取得）
+  if(c.coin>0 && !c.coinClaimed) {
+    const b=document.createElement('span');
+    b.className='coin-badge'; b.textContent='G';
+    el.appendChild(b);
+  }
+}
+function renderMatched(el, c) {
+  const def=DECK_DEF[c.ri];
+  el.className='card matched';
+  el.innerHTML=def.emoji+'<span class="check">✓</span>';
+}
+
+// ── ボード描画 ──
+function renderBoard() {
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  deck.forEach((c,idx)=>{
+    const el=document.createElement('div');
+    if(c.matched){ renderMatched(el,c); }
+    else {
+      renderFaceDown(el);
+      el.addEventListener('click',()=>onCardClick(el,idx));
+    }
+    board.appendChild(el);
+  });
+}
+
+// ── タップ処理 ──
+function onCardClick(el, idx) {
+  if(locked||mana<=0||deck[idx].matched) return;
+  if(firstSel && firstSel.idx===idx) { renderFaceDown(el); firstSel=null; return; }
+
+  renderFaceUp(el, deck[idx]);
+
+  // コイン即獲得
+  if(deck[idx].coin>0 && !deck[idx].coinClaimed) {
+    deck[idx].coinClaimed=true;
+    const amt=deck[idx].coin;
+    totalCoins+=amt; todayCoins+=amt;
+    updateCoinUI();
+    showCoinPopup(amt);
+  }
+
+  if(!firstSel) {
+    firstSel={el,idx};
+  } else {
+    locked=true; mana--; updateManaUI();
+    const fc=firstSel; firstSel=null;
+    setTimeout(()=>{
+      if(deck[fc.idx].ri===deck[idx].ri) {
+        // ペア成立
+        deck[fc.idx].matched=true; deck[idx].matched=true;
+        renderMatched(fc.el,deck[fc.idx]); renderMatched(el,deck[idx]);
+        todayItems.push(deck[idx].ri);
+        updateLog(); save();
+        locked=false;
+        if(mana===0) setTimeout(leaveArea,400);
+      } else {
+        // ミスマッチ
+        fc.el.classList.add('wrong'); el.classList.add('wrong');
+        setTimeout(()=>{
+          renderFaceDown(fc.el); renderFaceDown(el);
+          fc.el.classList.remove('wrong'); el.classList.remove('wrong');
+          locked=false;
+          if(mana===0) leaveArea();
+        },380);
+      }
+    },450);
+  }
+}
+
+// ── 帰還 ──
+function leaveArea() {
+  document.getElementById('rsub').textContent=`Day ${day} の探索終了（使用魔力 ${MAX_MANA-mana}/${MAX_MANA}）`;
+  document.getElementById('rcoin').textContent = todayCoins>0 ? '💰 本日のコイン獲得 +'+todayCoins+'G' : '';
+  const box=document.getElementById('ritems');
+  if(todayItems.length===0) {
+    box.innerHTML='<div style="color:#4a7a30;font-size:13px;margin:8px 0">今日は何も手に入らなかった...</div>';
+  } else {
+    const cnt={};
+    todayItems.forEach(ri=>{ if(!cnt[ri]) cnt[ri]={...DECK_DEF[ri],c:0}; cnt[ri].c++; });
+    box.innerHTML=Object.values(cnt).map(i=>`<div style="color:#a8d870;font-size:14px;margin:4px 0">${i.emoji} ${i.label} × ${i.c}</div>`).join('');
+  }
+  document.getElementById('result').classList.add('show');
+}
+
+// ── 翌日 ──
+function nextDay() {
+  document.getElementById('result').classList.remove('show');
+  day++; mana=MAX_MANA;
+  todayItems=[]; todayCoins=0;
+  firstSel=null; locked=false;
+  save(); renderBoard(); updateManaUI(); updateCoinUI(); updateLog();
+}
+
+// ── リセット ──
+function confirmReset() {
+  if(!confirm('フィールドをリセットしますか？\n（進捗がすべて消えます）')) return;
+  localStorage.removeItem(SAVE_KEY);
+  document.getElementById('result').classList.remove('show');
+  start();
+}
+
+// ── 起動 ──
+function start() {
+  if(!load()) { deck=generateDeck(); day=1; totalCoins=0; save(); }
+  mana=MAX_MANA; todayItems=[]; todayCoins=0; firstSel=null; locked=false;
+  renderBoard(); updateManaUI(); updateCoinUI(); updateLog();
+}
+
+start();
+</script>
+</body>
+</html>
