@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>やまやま牧場 - ホーム画面【終盤】</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#0a1506; min-height:100vh;
+  font-family:'Hiragino Kaku Gothic ProN','MS Gothic',sans-serif;
+  display:flex; flex-direction:column; align-items:center;
+}
+h2 {
+  color:#c8a030; font-size:13px; letter-spacing:2px;
+  padding:10px 0 4px; text-align:center;
+}
+.screen-wrap {
+  width:100%; max-width:440px;
+  position:relative;
+  overflow:hidden;
+  aspect-ratio: 941 / 1350;
+}
+.bg-img {
+  position:absolute; top:0; left:0;
+  width:100%; display:block;
+}
+
+/* 配置物（ドット素材） */
+.placed {
+  position:absolute;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 6px 4px rgba(0,0,0,0.35));
+}
+.shadow-blob {
+  position:absolute;
+  background:radial-gradient(ellipse at center, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0) 70%);
+  border-radius:50%;
+}
+
+/* トップUI */
+.topbar {
+  position:absolute; top:0; left:0; right:0;
+  padding:8px 12px;
+  background:linear-gradient(180deg,#000000aa 0%,transparent 100%);
+  display:flex; justify-content:space-between; align-items:center;
+  z-index:10;
+}
+.top-item {
+  display:flex; align-items:center; gap:4px;
+  font-size:16px; color:#f0ffe0; font-weight:bold;
+  text-shadow:1px 1px 3px #000;
+}
+.top-day { color:#ffd060; font-size:15px; text-shadow:1px 1px 3px #000; }
+
+/* 下部ボタン群 */
+.bottom-ui {
+  position:absolute; bottom:0; left:0; right:0;
+  padding:8px 12px 12px;
+  background:linear-gradient(0deg,#000000cc 0%,transparent 100%);
+  z-index:10;
+}
+.btn-main {
+  width:100%; padding:13px 0;
+  background:linear-gradient(135deg,#2a5a10dd,#3a8018dd);
+  color:#d8f8a0; font-size:19px; font-weight:bold;
+  border:1.5px solid #5a9a28; border-radius:12px;
+  cursor:pointer; font-family:inherit; letter-spacing:1px;
+  margin-bottom:8px;
+  box-shadow:0 2px 12px #00000066;
+}
+.sub-row {
+  display:flex; gap:6px;
+}
+.btn-sub {
+  flex:1; padding:8px 0;
+  background:#0a2008cc; color:#90c060;
+  font-size:14px; border:1px solid #2a5010;
+  border-radius:8px; cursor:pointer; font-family:inherit;
+  text-align:center;
+}
+
+/* ラベル */
+.label-tag {
+  position:absolute; top:8px; left:50%;
+  transform:translateX(-50%);
+  background:#0008; color:#ffd060;
+  font-size:10px; padding:2px 10px; border-radius:10px;
+  white-space:nowrap;
+  z-index:11;
+}
+</style>
+</head>
+<body>
+
+<h2>📱 ホーム画面案　【終盤】施設フル稼働・牛複数頭</h2>
+
+<div class="screen-wrap">
+  <img class="bg-img" src="mapback.png" alt="牧場背景">
+
+  <!-- 建物（奥列） -->
+  <div class="shadow-blob" style="left:4.6%; top:58.7%; width:17%; height:3.32%;"></div>
+  <img class="placed" style="left:3%; top:49%; width:20%;" src="assets/sprites/gyusha_large.png" alt="牛舎（大）">
+
+  <div class="shadow-blob" style="left:26.3%; top:59.1%; width:13.6%; height:2.76%;"></div>
+  <img class="placed" style="left:25%; top:51%; width:16%;" src="assets/sprites/shiryoko.png" alt="飼料庫">
+
+  <div class="shadow-blob" style="left:43.7%; top:56.35%; width:7.65%; height:3.53%;"></div>
+  <img class="placed" style="left:43%; top:46%; width:9%;" src="assets/sprites/silo.png" alt="サイロ">
+
+  <div class="shadow-blob" style="left:54.2%; top:57.76%; width:12.75%; height:1.97%;"></div>
+  <img class="placed" style="left:53%; top:52%; width:15%;" src="assets/sprites/taihisha.png" alt="堆肥舎">
+
+  <div class="shadow-blob" style="left:71.44%; top:56.29%; width:15.3%; height:2.15%;"></div>
+  <img class="placed" style="left:70%; top:50%; width:18%;" src="assets/sprites/wrap_wara.png" alt="ラップ藁置き場">
+
+  <div class="shadow-blob" style="left:85.04%; top:59.17%; width:11.05%; height:2.79%;"></div>
+  <img class="placed" style="left:84%; top:51%; width:13%;" src="assets/sprites/sagyogoya.png" alt="作業小屋">
+
+  <!-- 機械・車両（中列） -->
+  <div class="shadow-blob" style="left:3.12%; top:67.99%; width:11.9%; height:2.04%;"></div>
+  <img class="placed" style="left:2%; top:66%; width:14%;" src="assets/sprites/keitora.png" alt="軽トラック">
+
+  <div class="shadow-blob" style="left:18.96%; top:70.15%; width:10.2%; height:2.1%;"></div>
+  <img class="placed" style="left:18%; top:64%; width:12%;" src="assets/sprites/tractor.png" alt="トラクター">
+
+  <div class="shadow-blob" style="left:33.04%; top:69.66%; width:11.05%; height:1.59%;"></div>
+  <img class="placed" style="left:32%; top:65%; width:13%;" src="assets/sprites/wheel_loader.png" alt="ホイールローダ">
+
+  <div class="shadow-blob" style="left:48.04%; top:69.71%; width:11.05%; height:2.29%;"></div>
+  <img class="placed" style="left:47%; top:63%; width:13%;" src="assets/sprites/shiryo_mixer.png" alt="飼料ミキサー">
+
+  <div class="shadow-blob" style="left:63.8%; top:72.59%; width:8.5%; height:1.57%;"></div>
+  <img class="placed" style="left:63%; top:68%; width:10%;" src="assets/sprites/buggy.png" alt="バギー">
+
+  <!-- 牛（手前列） -->
+  <div class="shadow-blob" style="left:75.88%; top:70.67%; width:9.35%; height:1.6%;"></div>
+  <img class="placed" style="left:75%; top:66%; width:11%;" src="assets/sprites/cow_mother.png" alt="母牛">
+
+  <div class="shadow-blob" style="left:87.88%; top:74.67%; width:9.35%; height:1.6%;"></div>
+  <img class="placed" style="left:87%; top:70%; width:11%;" src="assets/sprites/cow_mother.png" alt="母牛">
+
+  <div class="shadow-blob" style="left:58.64%; top:77.02%; width:6.8%; height:1.37%;"></div>
+  <img class="placed" style="left:58%; top:73%; width:8%;" src="assets/sprites/cow_4m.png" alt="子牛4ヶ月">
+
+  <div class="shadow-blob" style="left:68.56%; top:79.52%; width:5.95%; height:1.2%;"></div>
+  <img class="placed" style="left:68%; top:76%; width:7%;" src="assets/sprites/cow_2m.png" alt="子牛2ヶ月">
+
+  <div class="label-tag">【終盤】3年目　冬　Day 214</div>
+
+  <div class="topbar">
+    <div style="width:1px"></div>
+    <div style="display:flex;gap:12px">
+      <div class="top-item">
+        <span>🌿 450</span>
+      </div>
+      <div class="top-item">
+        <span>💰 12,400G</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-ui">
+    <button class="btn-main">🌿 餌を集めにいく</button>
+    <div class="sub-row">
+      <button class="btn-sub">🐄 牛舎</button>
+      <button class="btn-sub">🏪 ショップ</button>
+      <button class="btn-sub">📖 日誌</button>
+      <button class="btn-sub">🔑 呪文</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
