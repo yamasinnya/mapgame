@@ -17,6 +17,7 @@ const LOOP_DEFAULT_STATE = {
   ],
   money: 0,
   grassStock: 0,  // 探索で集めた草の合計ポイント（翌日の体調変動に使い、アップキープ時に0へリセット）
+  qualityPoint: 0,  // 薬草（レア）獲得から貯まる品質ポイント（閾値到達でfeeding.htmlにて品質を1段階上げ、0へリセット）
 };
 
 function loadLoopState() {

@@ -656,6 +656,11 @@ function calcGrassPoints(items) {
   return items.reduce((sum, ri) => sum + (POINTS[DECK_DEF[ri].key] || 0), 0);
 }
 
+// 品質ポイント：薬草（レア）獲得枚数 × 5pt（体調とは別で品質のみに加算）
+function calcQualityPoints(items) {
+  return items.filter(ri => DECK_DEF[ri].key === 'rare').length * 5;
+}
+
 let grassBanked = false; // 1日1回だけgrassStockに加算するためのガード
 
 function leaveArea() {
@@ -663,6 +668,7 @@ function leaveArea() {
     grassBanked = true;
     const loopState = loadLoopState();
     loopState.grassStock += calcGrassPoints(todayItems);
+    loopState.qualityPoint = (loopState.qualityPoint || 0) + calcQualityPoints(todayItems);
     saveLoopState(loopState);
   }
 
