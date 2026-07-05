@@ -244,9 +244,10 @@ body {
 <div id="passive-wrap">
   <div id="passive-label">習得スキル</div>
   <div id="passive-icons">
-    <div class="passive-icon" onclick="showSkillInfo('boy')">👦</div>
-    <div class="passive-icon" onclick="showSkillInfo('trace')">🐾</div>
-    <div class="passive-icon" onclick="showSkillInfo('roku')">🔮</div>
+    <div class="passive-icon" id="passive-icon-boy" onclick="showSkillInfo('boy')">👦</div>
+    <div class="passive-icon" id="passive-icon-trace" onclick="showSkillInfo('trace')">🐾</div>
+    <div class="passive-icon" id="passive-icon-roku" onclick="showSkillInfo('roku')">🔮</div>
+    <div class="passive-icon" id="passive-icon-zenno" onclick="showSkillInfo('zenno')">⛩️</div>
   </div>
 </div>
 <div id="skill-tooltip"></div>
@@ -308,14 +309,26 @@ let todayItems = [];
 let todayCoins = 0;
 let firstSel   = null;
 let locked     = false;
-let skillUsedToday = false;
+let skillMaxUsesToday = 0; // 回転斬りの1日の使用可能回数（ふうかの品質次第。設計まとめ.md「品質（4段階）」の表に対応）
+let skillUsesLeft = 0;
 let cardElsRef = []; // DOM参照を保持（スキルでのぞき見用）
-let hasHerdboyseye = false; // ふうかのskillが"herdboys_eye"の場合のみミスマッチ表示を延長
+let hasHerdboyseye = false;   // ふうかのskillが"herdboys_eye"の場合のみミスマッチ表示を延長
+let hasSixthSense = false;    // 所持牛のskillが"roku"の場合のみ第六感（アンコモン透視）が発動
+let hasHarvestMemory = false; // 所持牛のskillが"trace"の場合のみ刈り跡の記憶（翌日自動収穫）が発動
+let hasZennoshin = false;     // 所持牛のskillが"zenno"の場合のみ全農神（その日は全マス見えたまま）が発動
+
+// 品質→回転斬りの1日の使用可能回数（設計まとめ.md: 優=2回/日, 良=1回/日, 可以下=使えない）
+function rotationSlashMaxUses(quality) {
+  if (quality >= 4) return 2;
+  if (quality === 3) return 1;
+  return 0;
+}
 
 const SKILL_INFO = {
   boy:   { name:'牧童の目',     desc:'ミスマッチした時、通常より長く（1.5秒）表面が見える。焦らず覚え直せる。' },
   trace: { name:'刈り跡の記憶', desc:'前日に良い素材（アンコモン以上）を見つけた場所は、翌朝すでに刈り取られた状態で始まる（コストなしで自動収穫）。' },
   roku:  { name:'第六感',       desc:'毎朝、アンコモンのカードがある場所を3箇所、直感的に感じ取れる（うっすら光る）。' },
+  zenno: { name:'全農神',       desc:'農耕の神に愛された牛。探索エリアの全マスが、その日はずっと最初から見えている。' },
 };
 
 function showSkillInfo(key) {
@@ -510,7 +523,8 @@ function renderBoard() {
     if (c.matched) {
       renderMatched(el, c);
     } else {
-      renderFaceDown(el, hintPositions.has(idx));
+      if (hasZennoshin) renderFaceUp(el, c);
+      else renderFaceDown(el, hintPositions.has(idx));
       el.addEventListener('click', () => onCardClick(el, idx));
     }
     board.appendChild(el);
@@ -519,24 +533,39 @@ function renderBoard() {
   updateSkillBtn();
 }
 
+// ── 習得スキルアイコンの表示切り替え：所持していないスキルのアイコンは非表示 ──
+function updatePassiveIcons() {
+  const boyEl = document.getElementById('passive-icon-boy');
+  const traceEl = document.getElementById('passive-icon-trace');
+  const rokuEl = document.getElementById('passive-icon-roku');
+  const zennoEl = document.getElementById('passive-icon-zenno');
+  if (boyEl) boyEl.style.display = hasHerdboyseye ? '' : 'none';
+  if (traceEl) traceEl.style.display = hasHarvestMemory ? '' : 'none';
+  if (rokuEl) rokuEl.style.display = hasSixthSense ? '' : 'none';
+  if (zennoEl) zennoEl.style.display = hasZennoshin ? '' : 'none';
+}
+
 // ── スキルボタンの有効/無効表示 ──
 function updateSkillBtn() {
   const btn = document.getElementById('skill-btn');
   if (!btn) return;
-  if (skillUsedToday) {
+  if (skillMaxUsesToday <= 0) {
+    btn.disabled = true;
+    btn.textContent = '🌀 回転斬り（回数は所持牛の品質による）';
+  } else if (skillUsesLeft <= 0) {
     btn.disabled = true;
     btn.textContent = '🌀 回転斬り（本日は使用済み）';
   } else {
     btn.disabled = false;
-    btn.textContent = '🌀 回転斬り（開幕スキル・周囲9マスを一時的に見る）';
+    btn.textContent = `🌀 回転斬り（開幕スキル・周囲9マスを一時的に見る・残り${skillUsesLeft}回）`;
   }
 }
 
 // ── 回転斬り：ランダムな3x3(最大9マス)を2秒間だけ見せる ──
 const BOARD_COLS = 8; // グリッド列数（CSSのgrid-template-columnsと一致させる）
 function useSkill() {
-  if (skillUsedToday || locked) return;
-  skillUsedToday = true;
+  if (skillUsesLeft <= 0 || locked) return;
+  skillUsesLeft--;
   updateSkillBtn();
 
   // まだ未マッチのカードの中からランダムに中心を選ぶ
@@ -583,12 +612,14 @@ function onCardClick(el, idx) {
   if (mana <= 0) return;
   if (deck[idx].matched) return;
   if (firstSel && firstSel.idx === idx) {
-    renderFaceDown(el);
+    if (hasZennoshin) el.classList.remove('peek');
+    else renderFaceDown(el);
     firstSel = null;
     return;
   }
 
   renderFaceUp(el, deck[idx]);
+  if (hasZennoshin) el.classList.add('peek'); // 全農神：常に見えているので選択中カードを枠線で示す
 
   // コイン即獲得（ペア成立とは無関係。表向きにした瞬間に入手する）
   if (deck[idx].coin > 0 && !deck[idx].coinClaimed) {
@@ -614,9 +645,9 @@ function onCardClick(el, idx) {
         renderMatched(fc.el, deck[fc.idx]);
         renderMatched(el, deck[idx]);
 
-        // 「刈り跡の記憶」用：アンコモン以上をマッチさせた位置を記録
+        // 「刈り跡の記憶」用：アンコモン以上をマッチさせた位置を記録（所持牛がいる場合のみ）
         const matchedDef = DECK_DEF[deck[idx].ri];
-        if (matchedDef.key === 'uncommon' || matchedDef.key === 'rare') {
+        if (hasHarvestMemory && (matchedDef.key === 'uncommon' || matchedDef.key === 'rare')) {
           todayMatchedGoodPositions.add(fc.idx);
           todayMatchedGoodPositions.add(idx);
         }
@@ -636,10 +667,10 @@ function onCardClick(el, idx) {
           el.classList.add('wrong');
         }, LINGER_MS - 300);
         setTimeout(() => {
-          renderFaceDown(fc.el);
-          renderFaceDown(el);
-          fc.el.classList.remove('wrong','lingering');
-          el.classList.remove('wrong','lingering');
+          if (hasZennoshin) { renderFaceUp(fc.el, deck[fc.idx]); renderFaceUp(el, deck[idx]); }
+          else { renderFaceDown(fc.el); renderFaceDown(el); }
+          fc.el.classList.remove('wrong','lingering','peek');
+          el.classList.remove('wrong','lingering','peek');
           locked = false;
           if (mana === 0) leaveArea();
           applyHints(); // 裏に戻したのでヒント表示を再適用
@@ -708,6 +739,11 @@ function start() {
   const loopState = loadLoopState();
   MAX_MANA = calcTotalMagic(loopState.cows);
   hasHerdboyseye = loopState.cows.some(c => c.skill === 'herdboys_eye');
+  hasSixthSense = loopState.cows.some(c => c.skill === 'roku');
+  hasHarvestMemory = loopState.cows.some(c => c.skill === 'trace');
+  hasZennoshin = loopState.cows.some(c => c.skill === 'zenno');
+  skillMaxUsesToday = rotationSlashMaxUses(loopState.cows.length ? loopState.cows[0].quality : 0);
+  updatePassiveIcons();
 
   let autoHarvested = [];
   if (!load()) {
@@ -744,8 +780,9 @@ function start() {
   grassBanked = false;
   firstSel = null;
   locked = false;
-  skillUsedToday = false;
-  pickSixthSenseHints();
+  skillUsesLeft = skillMaxUsesToday;
+  if (hasSixthSense) pickSixthSenseHints();
+  else hintPositions = new Set();
   save();
   renderBoard();
   updateManaUI();

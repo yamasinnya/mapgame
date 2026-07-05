@@ -12,7 +12,7 @@ const LOOP_DEFAULT_STATE = {
       seed: 1234,       // ブチ模様の乱数シード（4桁）
       condition: 6,     // 体調（内部値 1-10）。初期値6＝普通
       quality: 2,       // 品質（1-4）。初期値2＝可。今回は変動ロジックなし
-      skill: 'herdboys_eye',
+      skill: 'zenno',
     },
   ],
   money: 0,
@@ -20,13 +20,24 @@ const LOOP_DEFAULT_STATE = {
   qualityPoint: 0,  // 薬草（レア）獲得から貯まる品質ポイント（閾値到達でfeeding.htmlにて品質を1段階上げ、0へリセット）
 };
 
+// 牛ごとのマージ：skillは常にcommon.js側（開発時のデバッグ差し替え）を優先し、
+// それ以外（体調・品質など進行中の値）はセーブ側を優先する。
+// これにより「ふうかに持たせるスキルを変える」だけの調整で、既存の進捗（体調・品質・所持金等）を消さずに反映できる。
+function mergeCowWithDefault(savedCow, defaultCow) {
+  if (!defaultCow) return savedCow; // デフォルトに居ない牛（将来のガチャ牛など）はそのまま
+  return { ...defaultCow, ...savedCow, skill: defaultCow.skill };
+}
+
 function loadLoopState() {
   try {
     const raw = localStorage.getItem(LOOP_SAVE_KEY);
     if (!raw) return { ...LOOP_DEFAULT_STATE };
     const parsed = JSON.parse(raw);
     if (!parsed || parsed.version !== LOOP_DEFAULT_STATE.version) return { ...LOOP_DEFAULT_STATE };
-    return { ...LOOP_DEFAULT_STATE, ...parsed };
+    const defaultCowsById = {};
+    LOOP_DEFAULT_STATE.cows.forEach(c => { defaultCowsById[c.id] = c; });
+    const mergedCows = (parsed.cows || []).map(saved => mergeCowWithDefault(saved, defaultCowsById[saved.id]));
+    return { ...LOOP_DEFAULT_STATE, ...parsed, cows: mergedCows };
   } catch (e) {
     return { ...LOOP_DEFAULT_STATE };
   }
