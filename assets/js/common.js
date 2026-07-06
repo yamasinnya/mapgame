@@ -13,6 +13,8 @@ const LOOP_DEFAULT_STATE = {
       condition: 6,     // 体調（内部値 1-10）。初期値6＝普通
       quality: 2,       // 品質（1-4）。初期値2＝可。今回は変動ロジックなし
       skill: 'zenno',
+      poopCount: 0,      // 💩の数（0〜4）。フェーズ2で増加ロジックを実装予定
+      diseaseAlert: false, // 😷アイコン表示フラグ。フェーズ2で発動ロジックを実装予定
     },
   ],
   money: 0,
@@ -69,6 +71,33 @@ function conditionToLabel(condition) {
 function calcTotalMagic(cows) {
   return cows.reduce((sum, cow) => sum + conditionToMagic(cow.condition), 0);
 }
+
+// 品質ポイント→品質変動の閾値（薬草獲得→品質ポイントの経路のみ実装。体調差分経路はスコープ外）
+// 将来個別に変える予定のため定数を分けている（現状は全て10）
+const QUALITY_THRESHOLD_TO_KA  = 10; // 劣→可
+const QUALITY_THRESHOLD_TO_RYO = 10; // 可→良
+const QUALITY_THRESHOLD_TO_YU  = 10; // 良→優
+function qualityThresholdFor(quality) {
+  if (quality === 1) return QUALITY_THRESHOLD_TO_KA;
+  if (quality === 2) return QUALITY_THRESHOLD_TO_RYO;
+  return QUALITY_THRESHOLD_TO_YU;
+}
+
+// 品質（1-4）→ 表示ラベルのt()キー（実際の文字列はja.json経由で取得する）
+function qualityToLabelKey(quality) {
+  if (quality >= 4) return 'quality_label_yu';
+  if (quality === 3) return 'quality_label_ryo';
+  if (quality === 2) return 'quality_label_ka';
+  return 'quality_label_retsu';
+}
+
+// スキルキー→ 絵文字とt()キーの対応（cow.skillの値と一致させること）
+const SKILL_DISPLAY = {
+  herdboys_eye: { emoji: '👦', nameKey: 'skill_name_herdboys_eye' },
+  trace:        { emoji: '🐾', nameKey: 'skill_name_trace' },
+  roku:         { emoji: '🔮', nameKey: 'skill_name_roku' },
+  zenno:        { emoji: '⛩️', nameKey: 'skill_name_zenno' },
+};
 
 // 通算day(1始まり) → { year, month, half, season }
 // 1年=24日、1ヶ月=2日（上旬/下旬）、季節：春3-5月 夏6-8月 秋9-11月 冬12-2月

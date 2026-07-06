@@ -31,16 +31,7 @@
   const state = loadLoopState();
 
   // 品質ポイント→品質変動（指示書_品質システム実装.md対応。薬草獲得→品質ポイントの経路のみ実装。体調差分経路はスコープ外）
-  // 閾値は将来個別に変える予定のため定数を分けている（現状は全て10）
-  const QUALITY_THRESHOLD_TO_KA  = 10; // 劣→可
-  const QUALITY_THRESHOLD_TO_RYO = 10; // 可→良
-  const QUALITY_THRESHOLD_TO_YU  = 10; // 良→優
-  function qualityThresholdFor(quality) {
-    if (quality === 1) return QUALITY_THRESHOLD_TO_KA;
-    if (quality === 2) return QUALITY_THRESHOLD_TO_RYO;
-    return QUALITY_THRESHOLD_TO_YU;
-  }
-
+  // 閾値判定はcommon.jsのqualityThresholdFor()を使用（barn.htmlと共有）
   let qualityNote = '';
   if (state.qualityPoint >= qualityThresholdFor(state.cows[0].quality)) {
     if (state.cows[0].quality < 4) {

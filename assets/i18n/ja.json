@@ -20,5 +20,27 @@
 
   "condition_up": "の体調が上がった！",
   "condition_down": "が少し元気がなさそうだ…",
-  "quality_up": "の品質が上がった！"
+  "quality_up": "の品質が上がった！",
+
+  "barn_title": "牛　舎",
+  "barn_close_btn": "閉じる",
+  "barn_condition_label": "体調",
+  "barn_quality_label": "品質",
+  "barn_months_suffix": "ヶ月",
+  "barn_empty_stall_name": "空き牛房",
+  "barn_empty_stall_comment": "空き牛房です。草を敷いて待っています。",
+  "barn_coat_comment_1": "最近少し元気がないかも…",
+  "barn_coat_comment_2": "普段通りの{name}だ。",
+  "barn_coat_comment_3": "毛艶がよくなってきた気がする。",
+  "barn_coat_comment_4": "なんだかいい感じ…そろそろかも？",
+
+  "skill_name_herdboys_eye": "牧童の目",
+  "skill_name_trace": "刈り跡の記憶",
+  "skill_name_roku": "第六感",
+  "skill_name_zenno": "全農神",
+
+  "quality_label_yu": "優",
+  "quality_label_ryo": "良",
+  "quality_label_ka": "可",
+  "quality_label_retsu": "劣"
 }
