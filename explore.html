@@ -633,6 +633,7 @@ function onCardClick(el, idx) {
   } else {
     locked = true;
     mana--;
+    spendMana(1); // 共有の魔力消費(manaUsed)にも反映（牛舎の床替え等と共有するため）
     updateManaUI();
 
     const fc = firstSel;
@@ -774,7 +775,7 @@ function start() {
   }
   // 同じ日に戻ってきた場合はdeckの状態（matched・コイン含む）をそのまま維持する
 
-  mana = MAX_MANA;
+  mana = manaRemaining(loopState); // 牛舎の床替え等ですでに魔力を使っていれば、その分を差し引く
   todayItems = [...autoHarvested];
   todayCoins = 0;
   grassBanked = false;

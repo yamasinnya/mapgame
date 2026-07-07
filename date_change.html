@@ -27,6 +27,7 @@
 
   const state = loadLoopState();
   state.day += 1;
+  state.manaUsed = 0; // 新しい1日なので魔力消費量をリセット
   saveLoopState(state);
 
   const date = formatDate(state.day);

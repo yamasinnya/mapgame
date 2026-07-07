@@ -23,6 +23,22 @@
 (async function () {
   await loadDict();
 
+  // 床替え：3日に1回、母牛の💩を+1（上限4）。4個で品質ポイントも-1（指示書_牛舎実装フェーズ2_床替え.md対応、頻度は口頭で3日に1回と修正）
+  const state = loadLoopState();
+  if (state.day % 3 === 0) {
+    state.cows.forEach(cow => {
+      if (cow.type === 'mother') {
+        cow.poopCount = Math.min(4, (cow.poopCount || 0) + 1);
+      }
+    });
+  }
+  state.cows.forEach(cow => {
+    if (cow.poopCount >= 4) {
+      state.qualityPoint = Math.max(0, state.qualityPoint - 1);
+    }
+  });
+  saveLoopState(state);
+
   // アップキープイベント判定（if文でベタ書き。JSON化はまだしない）
   // 重み：特になし70% / 発情15% / 難産15%（仮置き。数値イベントは未実装、テキスト表示のみ）
   const r = Math.random();

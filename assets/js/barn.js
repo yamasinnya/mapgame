@@ -185,6 +185,11 @@ function drawStatusIcons(stall) {
   }
 }
 
+// 💩アイコンのタップ判定領域（牛房当たり判定より優先してチェックする）
+function poopHitboxFor(stall) {
+  return { x1: stall.cx + 8, y1: stall.cy + 24, x2: stall.cx + 82, y2: stall.cy + 56 };
+}
+
 // ── ゲームループ ──
 function loop() {
   if (player.walking) player.anim++;
@@ -194,11 +199,21 @@ function loop() {
 
 // ── タップ ──
 canvas.addEventListener('click', e => {
-  if (player.walking || document.getElementById('sheetOverlay').classList.contains('open')) return;
+  if (player.walking || document.getElementById('sheetOverlay').classList.contains('open') || document.getElementById('poopSheetOverlay').classList.contains('open')) return;
   const rect = canvas.getBoundingClientRect();
   const scale = W / rect.width;
   const tx = (e.clientX - rect.left) * scale;
   const ty = (e.clientY - rect.top) * scale;
+
+  // 💩アイコンは牛房タップより優先（歩いて近づく演出はなく即座に床替えシートを開く）
+  for (const s of STALLS) {
+    if (s.type !== 'cow' || !s.cowRef || !(s.cowRef.poopCount > 0)) continue;
+    const hb = poopHitboxFor(s);
+    if (tx >= hb.x1 && tx <= hb.x2 && ty >= hb.y1 && ty <= hb.y2) {
+      openPoopSheet(s);
+      return;
+    }
+  }
 
   for (const hb of HITBOXES) {
     if (tx >= hb.x1 && tx <= hb.x2 && ty >= hb.y1 && ty <= hb.y2) {
@@ -325,6 +340,64 @@ function openSheet(stall) {
 function closeSheet() {
   document.getElementById('sheetOverlay').classList.remove('open');
   walkHome();
+}
+
+// ── 床替えシート（指示書_牛舎実装フェーズ2_床替え.md対応） ──
+// 💩アイコンのタップは牛房タップ(歩いて近づく)とは別扱いで、即座にこのシートを開く
+let currentPoopStall = null;
+
+function openPoopSheet(stall) {
+  currentPoopStall = stall;
+  const c = stall.cowRef;
+  const state = loadLoopState(); // 魔力・所持金の最新値を反映するため読み直す
+  const remaining = manaRemaining(state);
+  const isFirstYear = state.day <= 24;
+  const cleanCost = isFirstYear ? 500 : 1000;
+
+  document.getElementById('poopComment').textContent = c.poopCount >= 3 ? t('poop_comment_3') : '';
+  document.getElementById('poopTitle').textContent = t('barn_poop_title');
+
+  const selfBtn = document.getElementById('poopBtnSelf');
+  selfBtn.textContent = t('barn_poop_option_self');
+  selfBtn.disabled = remaining < 4;
+
+  const shopBtn = document.getElementById('poopBtnShop');
+  shopBtn.textContent = t('barn_poop_option_shop').replace('{cost}', cleanCost);
+  shopBtn.disabled = state.money < cleanCost;
+
+  document.getElementById('poopBtnCancel').textContent = t('barn_poop_cancel');
+  document.getElementById('poopSheetOverlay').classList.add('open');
+}
+
+function closePoopSheet() {
+  document.getElementById('poopSheetOverlay').classList.remove('open');
+  currentPoopStall = null;
+}
+
+function confirmPoopSelf() {
+  if (!currentPoopStall) return;
+  const state = loadLoopState();
+  if (manaRemaining(state) < 4) return;
+  state.manaUsed = (state.manaUsed || 0) + 4;
+  const targetCow = state.cows.find(c => c.id === cow.id);
+  if (targetCow) targetCow.poopCount = 0;
+  saveLoopState(state);
+  cow.poopCount = 0; // 表示中のcowオブジェクト（drawが参照）にも反映
+  closePoopSheet();
+}
+
+function confirmPoopShop() {
+  if (!currentPoopStall) return;
+  const state = loadLoopState();
+  const isFirstYear = state.day <= 24;
+  const cleanCost = isFirstYear ? 500 : 1000;
+  if (state.money < cleanCost) return;
+  state.money -= cleanCost;
+  const targetCow = state.cows.find(c => c.id === cow.id);
+  if (targetCow) targetCow.poopCount = 0;
+  saveLoopState(state);
+  cow.poopCount = 0;
+  closePoopSheet();
 }
 
 // ── 起動 ──

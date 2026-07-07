@@ -42,5 +42,11 @@
   "quality_label_yu": "優",
   "quality_label_ryo": "良",
   "quality_label_ka": "可",
-  "quality_label_retsu": "劣"
+  "quality_label_retsu": "劣",
+
+  "barn_poop_title": "🧹 床替えしますか？",
+  "barn_poop_option_self": "①自分でやる（魔力4消費）",
+  "barn_poop_option_shop": "②ショップに頼む（{cost}G）",
+  "barn_poop_cancel": "キャンセル",
+  "poop_comment_3": "なんか臭うな…そろそろ掃除してくれ"
 }

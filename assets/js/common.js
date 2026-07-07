@@ -13,13 +13,15 @@ const LOOP_DEFAULT_STATE = {
       condition: 6,     // 体調（内部値 1-10）。初期値6＝普通
       quality: 2,       // 品質（1-4）。初期値2＝可。今回は変動ロジックなし
       skill: 'zenno',
-      poopCount: 0,      // 💩の数（0〜4）。フェーズ2で増加ロジックを実装予定
-      diseaseAlert: false, // 😷アイコン表示フラグ。フェーズ2で発動ロジックを実装予定
+      type: 'mother',     // 'mother' | 'calf'（床替え等、母牛のみが対象の処理で使用）
+      poopCount: 0,      // 💩の数（0〜4）。毎日アップキープで+1、床替えで0にリセット
+      diseaseAlert: false, // 😷アイコン表示フラグ。フェーズ3で発動ロジックを実装予定
     },
   ],
   money: 0,
   grassStock: 0,  // 探索で集めた草の合計ポイント（翌日の体調変動に使い、アップキープ時に0へリセット）
   qualityPoint: 0,  // 薬草（レア）獲得から貯まる品質ポイント（閾値到達でfeeding.htmlにて品質を1段階上げ、0へリセット）
+  manaUsed: 0,  // 本日すでに消費した魔力の合計（探索・床替え等で共有。date_change.htmlで日付が変わるたびに0へリセット）
 };
 
 // 牛ごとのマージ：skillは常にcommon.js側（開発時のデバッグ差し替え）を優先し、
@@ -70,6 +72,19 @@ function conditionToLabel(condition) {
 // 全頭の体調から算出した魔力の合計（現状は1頭のみだが将来の複数頭に備える）
 function calcTotalMagic(cows) {
   return cows.reduce((sum, cow) => sum + conditionToMagic(cow.condition), 0);
+}
+
+// 本日の残り魔力（探索・床替え等で共有のmanaUsedを差し引いた値）
+function manaRemaining(state) {
+  return Math.max(0, calcTotalMagic(state.cows) - (state.manaUsed || 0));
+}
+
+// 魔力を消費して共有セーブに書き込む（explore.htmlの探索・barn.htmlの床替え等から呼ぶ）
+function spendMana(amount) {
+  const state = loadLoopState();
+  state.manaUsed = (state.manaUsed || 0) + amount;
+  saveLoopState(state);
+  return state;
 }
 
 // 品質ポイント→品質変動の閾値（薬草獲得→品質ポイントの経路のみ実装。体調差分経路はスコープ外）
