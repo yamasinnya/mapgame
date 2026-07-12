@@ -48,5 +48,36 @@
   "barn_poop_option_self": "①自分でやる（魔力4消費）",
   "barn_poop_option_shop": "②ショップに頼む（{cost}G）",
   "barn_poop_cancel": "キャンセル",
-  "poop_comment_3": "なんか臭うな…そろそろ掃除してくれ"
+  "poop_comment_3": "なんか臭うな…そろそろ掃除してくれ",
+
+  "btn_coming_soon": "準備中",
+
+  "shop_nandemo_name": "何でも屋",
+  "shop_nandemo_desc": "農作業の代行をします。",
+  "product_yukagae_daiko": "床替え代行",
+
+  "shop_juui_name": "獣医",
+  "shop_juui_desc": "牛の健康をサポートします。",
+  "product_tanetsuke_koukyu": "種付け 高級",
+  "product_tanetsuke_futsuu": "種付け 普通",
+  "product_tanetsuke_yasui": "種付け 安い",
+  "product_byouki_chiryo": "病気治療",
+
+  "shop_contractor_name": "コントラクター",
+  "shop_contractor_desc": "農業機械を使った作業を請け負います。",
+  "product_wrap_wara_6": "ラップ藁 6日分",
+  "product_wrap_wara_12": "ラップ藁 12日分",
+  "product_wrap_wara_24": "ラップ藁 24日分",
+
+  "shop_kensetsu_name": "建設屋",
+  "shop_kensetsu_desc": "施設の建設・IT化をお手伝いします。",
+  "product_mahou_taihisha": "魔法の堆肥舎",
+  "product_gyusha_kakuchou": "牛舎拡張",
+  "product_it_catalog": "IT化設備カタログ",
+  "product_it_catalog_note": "※行商人が来た時に購入できます",
+
+  "shop_seri_name": "競り市場",
+  "shop_seri_desc": "子牛の競りへの参加と、母牛の購入ができます。",
+  "product_seri_shuppin": "競り出品申込",
+  "product_bogyuu_kounyuu": "母牛を購入する"
 }

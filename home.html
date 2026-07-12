@@ -133,7 +133,7 @@ body {
     <button class="btn-main" id="btn-explore"></button>
     <div class="sub-row">
       <button class="btn-sub" id="btn-barn">🐄 牛舎</button>
-      <button class="btn-sub">🏪 ショップ</button>
+      <button class="btn-sub" id="btn-shop">🏪 ショップ</button>
       <button class="btn-sub">📖 日誌</button>
       <button class="btn-sub">🔑 呪文</button>
     </div>
@@ -152,6 +152,7 @@ body {
   btn.addEventListener('click', () => { location.href = 'map.html'; });
 
   document.getElementById('btn-barn').addEventListener('click', () => { location.href = 'barn.html'; });
+  document.getElementById('btn-shop').addEventListener('click', () => { location.href = 'street.html'; });
 })();
 </script>
 
