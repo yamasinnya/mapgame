@@ -11,6 +11,7 @@
 </head>
 <body>
 
+<div id="gameHeader" class="game-header"></div>
 <div class="screen-wrap">
   <div class="screen-title" id="title"></div>
   <div class="upkeep-text" id="upkeep-text"></div>
@@ -38,6 +39,7 @@
     }
   });
   saveLoopState(state);
+  renderHeader('gameHeader');
 
   // アップキープイベント判定（if文でベタ書き。JSON化はまだしない）
   // 重み：特になし70% / 発情15% / 難産15%（仮置き。数値イベントは未実装、テキスト表示のみ）

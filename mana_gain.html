@@ -11,6 +11,7 @@
 </head>
 <body>
 
+<div id="gameHeader" class="game-header"></div>
 <div class="screen-wrap">
   <div class="screen-title" id="title"></div>
   <img class="screen-gif" src="mana_collect.gif" alt="魔力収集">
@@ -28,6 +29,7 @@
 
   const state = loadLoopState();
   const magic = calcTotalMagic(state.cows);
+  renderHeader('gameHeader');
 
   document.getElementById('title').textContent = t('mana_gain_title');
   document.getElementById('mana-amount').textContent =

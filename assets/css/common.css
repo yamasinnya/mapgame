@@ -38,3 +38,25 @@ body {
   box-shadow:0 2px 12px #00000066;
   margin-top:18px;
 }
+
+/* 共通ヘッダー（指示書_共通ヘッダー実装.md対応） */
+.game-header {
+  width:100%; max-width:440px;
+  background: rgba(10, 10, 10, 0.88);
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.header-date { font-size: 11px; color: #c8c080; letter-spacing: 1px; }
+.header-day  { font-size: 10px; color: #708060; }
+.header-stats { display: flex; gap: 10px; align-items: center; }
+.header-stats span { font-size: 12px; font-weight: bold; }
+.stat-mana { color: #90d060; }
+.stat-gold { color: #f0d060; }
+.stat-wara { color: #e0e0d0; display: flex; align-items: center; gap: 3px; }
+.wrap-icon { width: 18px; height: 18px; image-rendering: pixelated; }

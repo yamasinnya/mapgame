@@ -14,13 +14,28 @@ body{
   display:flex;flex-direction:column;min-height:100vh;
   overflow-x:hidden;
 }
-.top-bar{
-  background:#0e0a04;padding:10px 16px 8px;
-  display:flex;justify-content:space-between;align-items:baseline;
-  border-bottom:1px solid #2a1e0a;flex-shrink:0;
+/* 共通ヘッダー（指示書_共通ヘッダー実装.md対応） */
+.game-header {
+  width:100%; max-width:375px;
+  background: rgba(10, 10, 10, 0.88);
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
 }
-.top-title{font-size:15px;color:#c8a840;letter-spacing:4px;}
-.top-sub{font-size:10px;color:#504030;}
+.header-date { font-size: 11px; color: #c8c080; letter-spacing: 1px; }
+.header-day  { font-size: 10px; color: #708060; }
+.header-stats { display: flex; gap: 10px; align-items: center; }
+.header-stats span { font-size: 12px; font-weight: bold; }
+.stat-mana { color: #90d060; }
+.stat-gold { color: #f0d060; }
+.stat-wara { color: #e0e0d0; display: flex; align-items: center; gap: 3px; }
+.wrap-icon { width: 18px; height: 18px; image-rendering: pixelated; }
 .back-row{
   background:#0e0a04;padding:6px 16px;border-bottom:1px solid #2a1e0a;flex-shrink:0;
 }
@@ -85,10 +100,7 @@ hr.divider{border:none;border-top:1px solid #3a2e18;margin:0 16px 12px;}
 </style>
 </head>
 <body>
-<div class="top-bar">
-  <span class="top-title" id="topTitle"></span>
-  <span class="top-sub" id="topSub"></span>
-</div>
+<div id="gameHeader" class="game-header"></div>
 <div class="back-row">
   <button id="btn-back"></button>
 </div>

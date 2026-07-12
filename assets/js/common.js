@@ -22,6 +22,7 @@ const LOOP_DEFAULT_STATE = {
   grassStock: 0,  // 探索で集めた草の合計ポイント（翌日の体調変動に使い、アップキープ時に0へリセット）
   qualityPoint: 0,  // 薬草（レア）獲得から貯まる品質ポイント（閾値到達でfeeding.htmlにて品質を1段階上げ、0へリセット）
   manaUsed: 0,  // 本日すでに消費した魔力の合計（探索・床替え等で共有。date_change.htmlで日付が変わるたびに0へリセット）
+  wrapWara: 0,  // ラップ藁の在庫数。購入実装は別フェーズ、現時点では表示のみ
 };
 
 // 牛ごとのマージ：skillは常にcommon.js側（開発時のデバッグ差し替え）を優先し、
@@ -127,4 +128,26 @@ function formatDate(day) {
   else if (month >= 9 && month <= 11) season = '秋';
   else season = '冬';
   return { year, month, half, season, text: `${year}年目　${season}　${month}月${half}` };
+}
+
+// 共通ヘッダー（指示書_共通ヘッダー実装.md対応）：日付・魔力・所持金・ラップ藁を表示する
+// 対象要素に <div id="gameHeader" class="game-header"></div> を置き、renderHeader('gameHeader') を呼ぶ
+function renderHeader(targetElementId) {
+  const state = loadLoopState();
+  const dateInfo = formatDate(state.day);
+  const el = document.getElementById(targetElementId);
+  if (!el) return;
+  el.innerHTML = `
+    <div class="header-left">
+      <div class="header-date">${dateInfo.text.replace('　', '<br>')}</div>
+      <div class="header-day">Day ${state.day}</div>
+    </div>
+    <div class="header-stats">
+      <span class="stat-mana">🔮 ${manaRemaining(state)}</span>
+      <span class="stat-gold">💰 ${state.money}G</span>
+      <span class="stat-wara">
+        <img src="assets/sprites/icon_wrap_wara.png" class="wrap-icon"> ${state.wrapWara || 0}
+      </span>
+    </div>
+  `;
 }

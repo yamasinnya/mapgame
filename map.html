@@ -17,6 +17,29 @@ body {
   display:flex; flex-direction:column;
   min-height:100vh;
 }
+/* 共通ヘッダー（指示書_共通ヘッダー実装.md対応） */
+.game-header {
+  width:100%; max-width:480px;
+  background: rgba(10, 10, 10, 0.88);
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  flex-shrink: 0;
+}
+.header-date { font-size: 11px; color: #c8c080; letter-spacing: 1px; }
+.header-day  { font-size: 10px; color: #708060; }
+.header-stats { display: flex; gap: 10px; align-items: center; }
+.header-stats span { font-size: 12px; font-weight: bold; }
+.stat-mana { color: #90d060; }
+.stat-gold { color: #f0d060; }
+.stat-wara { color: #e0e0d0; display: flex; align-items: center; gap: 3px; }
+.wrap-icon { width: 18px; height: 18px; image-rendering: pixelated; }
+
 /* ヘッダー */
 #header {
   background:linear-gradient(135deg,#0f2008,#1e3a10);
@@ -95,13 +118,13 @@ body {
 </head>
 <body>
 <div id="wrap">
+  <div id="gameHeader" class="game-header"></div>
   <div id="header">
     <div>
       <button id="btn-back-home" style="background:none;border:1px solid #4a7a30;color:#a8d870;font-size:10px;border-radius:6px;padding:3px 8px;margin-bottom:4px;cursor:pointer;font-family:inherit;">◀ 牧場へ戻る</button>
       <h1>やまやま牧場</h1>
       <div class="sub">ハイラルの山奥にある、わたしたちの牧場</div>
     </div>
-    <div class="date" id="date-label"></div>
   </div>
 
   <div id="map-wrap">
@@ -134,9 +157,7 @@ body {
 <script>
 (async function () {
   await loadDict();
-  const state = loadLoopState();
-  document.getElementById('date-label').innerHTML =
-    formatDate(state.day).text + `<br><span style="font-size:10px;color:#88aa50">Day ${state.day}</span>`;
+  renderHeader('gameHeader');
   document.getElementById('btn-back-home').addEventListener('click', () => { location.href = 'home.html'; });
 })();
 

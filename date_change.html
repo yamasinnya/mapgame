@@ -12,6 +12,7 @@
 </head>
 <body>
 
+<div id="gameHeader" class="game-header"></div>
 <div class="screen-wrap">
   <div class="screen-title" id="title"></div>
   <div class="date-text" id="date-text"></div>
@@ -29,6 +30,7 @@
   state.day += 1;
   state.manaUsed = 0; // 新しい1日なので魔力消費量をリセット
   saveLoopState(state);
+  renderHeader('gameHeader');
 
   const date = formatDate(state.day);
   document.getElementById('title').textContent = t('date_change_title');

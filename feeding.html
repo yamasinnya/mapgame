@@ -12,6 +12,7 @@
 </head>
 <body>
 
+<div id="gameHeader" class="game-header"></div>
 <div class="screen-wrap">
   <div class="screen-title" id="title"></div>
   <img class="screen-gif" src="cow_feeding.gif" alt="餌やり">
@@ -59,6 +60,7 @@
   }
   state.grassStock = 0;
   saveLoopState(state);
+  renderHeader('gameHeader');
 
   document.getElementById('title').textContent = t('feeding_title');
   document.getElementById('condition-note').textContent = conditionNote;

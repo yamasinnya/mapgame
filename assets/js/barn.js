@@ -404,8 +404,7 @@ function confirmPoopShop() {
 async function initBarn() {
   await loadDict();
 
-  document.getElementById('topTitle').textContent = t('barn_title');
-  document.getElementById('topSub').textContent = `${formatDate(loopState.day).text}（Day ${loopState.day}）`;
+  renderHeader('gameHeader');
   document.getElementById('btn-back').textContent = t('btn_go_home');
   document.getElementById('btn-back').addEventListener('click', () => { location.href = 'home.html'; });
 
