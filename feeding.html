@@ -8,6 +8,7 @@
 <style>
 .condition-note { color:#ffd060; font-size:15px; line-height:1.8; margin:8px 0 0; }
 .quality-note { color:#f0c060; font-size:15px; line-height:1.8; margin:4px 0 0; }
+.wara-note { color:#c8a878; font-size:13px; line-height:1.8; margin:4px 0 0; }
 </style>
 </head>
 <body>
@@ -19,6 +20,7 @@
   <!-- 今後：牛のステータスUP演出をここに追加予定 -->
   <div class="condition-note" id="condition-note"></div>
   <div class="quality-note" id="quality-note"></div>
+  <div class="wara-note" id="wara-note"></div>
   <div class="screen-note" id="note"></div>
   <button class="btn-main" id="btn-next"></button>
 </div>
@@ -44,6 +46,23 @@
     state.qualityPoint = 0;
   }
 
+  // ラップ藁による自動補填（指示書_ラップ藁購入機能.md対応。体調変動処理の直前に実行する）
+  // 現状grassStockは牛ごとではなく全頭共有のプールなので、頭数で割った平均が「維持ライン」未満の場合に
+  // 頭数分×5ptを満たすよう補填する（牛1頭のみの現状は指示書の1頭ぶんのロジックと数値上一致する）
+  let waraNote = '';
+  {
+    const cowCount = state.cows.length || 1;
+    if (state.grassStock / cowCount < 4 && state.wrapWara > 0) {
+      const neededTotal = Math.max(0, 5 * cowCount - state.grassStock);
+      const consume = Math.min(neededTotal, state.wrapWara);
+      if (consume > 0) {
+        state.wrapWara -= consume;
+        state.grassStock += consume;
+        waraNote = t('wara_auto_consumed');
+      }
+    }
+  }
+
   // 草ポイント→体調変動（設計まとめ.md「草と体調の関係」の表に対応。if文でベタ書き、JSON化はしない）
   const grassPerCow = state.cows.length ? state.grassStock / state.cows.length : 0;
   let conditionDelta = 0;
@@ -65,6 +84,7 @@
   document.getElementById('title').textContent = t('feeding_title');
   document.getElementById('condition-note').textContent = conditionNote;
   document.getElementById('quality-note').textContent = qualityNote;
+  document.getElementById('wara-note').textContent = waraNote;
   document.getElementById('note').textContent = t('feeding_note');
 
   const btn = document.getElementById('btn-next');
