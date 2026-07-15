@@ -89,5 +89,20 @@
   "truck_hello_morning": "おはようさん、相棒",
   "truck_hello_day": "今日もよろしくな",
   "truck_hello_evening": "今日もお疲れさん",
-  "truck_hello_night": "こんな時間まで働いてるのか"
+  "truck_hello_night": "こんな時間まで働いてるのか",
+
+  "title_start": "はじめから",
+  "title_continue": "つづきから",
+  "title_password": "ふっかつのじゅもん",
+  "title_about": "このゲームについて",
+  "title_confirm_delete_message": "セーブデータが消えますがよいですか？",
+  "title_confirm_yes": "はい",
+  "title_confirm_no": "いいえ",
+
+  "about_game_name": "うしリクレイム",
+  "about_body": "黒毛和牛の繁殖農家として、\n廃れた谷を開拓するゲームです。\n\n牛と長く付き合うことで魔力が生まれ、\nその力で世界を少しずつ取り戻していきます。\n\n敵はいません。\nゲームオーバーもありません。\n急かしません。",
+  "about_back_btn": "タイトルに戻る",
+
+  "prologue_title_placeholder": "序章（準備中）",
+  "prologue_note_placeholder": "（今後：序章の内容をここに追加予定）"
 }

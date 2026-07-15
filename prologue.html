@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>やまやま牧場 - 序章</title>
+<link rel="stylesheet" href="assets/css/common.css">
+</head>
+<body>
+
+<!-- 序章の中身は別途実装予定（指示書_タイトル画面実装.mdでは遷移先の用意のみが対象） -->
+<div class="screen-wrap">
+  <div class="screen-title" id="title"></div>
+  <div class="screen-note" id="note"></div>
+  <button class="btn-main" id="btn-next"></button>
+</div>
+
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/common.js"></script>
+<script>
+(async function () {
+  await loadDict();
+  document.getElementById('title').textContent = t('prologue_title_placeholder');
+  document.getElementById('note').textContent = t('prologue_note_placeholder');
+  const btn = document.getElementById('btn-next');
+  btn.textContent = t('btn_next');
+  btn.addEventListener('click', () => { location.href = 'home.html'; });
+})();
+</script>
+
+</body>
+</html>
