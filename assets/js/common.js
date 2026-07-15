@@ -23,6 +23,9 @@ const LOOP_DEFAULT_STATE = {
   qualityPoint: 0,  // 薬草（レア）獲得から貯まる品質ポイント（閾値到達でfeeding.htmlにて品質を1段階上げ、0へリセット）
   manaUsed: 0,  // 本日すでに消費した魔力の合計（探索・床替え等で共有。date_change.htmlで日付が変わるたびに0へリセット）
   wrapWara: 0,  // ラップ藁の在庫数。購入実装は別フェーズ、現時点では表示のみ
+  buildings: {
+    gyusha_small: true, // 牛舎（小）。初期状態から表示。将来、建設屋で建てた施設をここに追加していく
+  },
 };
 
 // 牛ごとのマージ：skillは常にcommon.js側（開発時のデバッグ差し替え）を優先し、
@@ -42,7 +45,10 @@ function loadLoopState() {
     const defaultCowsById = {};
     LOOP_DEFAULT_STATE.cows.forEach(c => { defaultCowsById[c.id] = c; });
     const mergedCows = (parsed.cows || []).map(saved => mergeCowWithDefault(saved, defaultCowsById[saved.id]));
-    return { ...LOOP_DEFAULT_STATE, ...parsed, cows: mergedCows };
+    // buildingsも浅いスプレッドだけだと、将来デフォルトに新しい施設フラグを追加した時に
+    // 既存セーブ側の値がbuildingsごと丸ごと勝ってしまい新フラグが消える。cows同様キー単位でマージする。
+    const mergedBuildings = { ...LOOP_DEFAULT_STATE.buildings, ...(parsed.buildings || {}) };
+    return { ...LOOP_DEFAULT_STATE, ...parsed, cows: mergedCows, buildings: mergedBuildings };
   } catch (e) {
     return { ...LOOP_DEFAULT_STATE };
   }

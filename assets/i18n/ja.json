@@ -84,5 +84,10 @@
   "btn_buy": "購入する",
   "btn_cant_buy": "購入できません",
   "msg_wara_purchased": "ラップ藁を{days}日分購入しました",
-  "wara_auto_consumed": "ラップ藁を使って草を補填しました"
+  "wara_auto_consumed": "ラップ藁を使って草を補填しました",
+
+  "truck_hello_morning": "おはようさん、相棒",
+  "truck_hello_day": "今日もよろしくな",
+  "truck_hello_evening": "今日もお疲れさん",
+  "truck_hello_night": "こんな時間まで働いてるのか"
 }

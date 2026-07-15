@@ -34,6 +34,28 @@ body {
   border-radius:50%;
 }
 
+/* 軽トラック（初期状態から固定配置。建物フラグの対象外） */
+.keitora { left:56%; top:62%; width:20%; z-index:3; cursor:pointer; }
+.keitora-shadow { left:57%; top:70%; width:18%; height:5%; z-index:1; }
+
+/* 軽トラの挨拶フキダシ */
+.truck-bubble{
+  position:absolute; left:66%; top:42%;
+  transform:translateX(-50%) translateY(10px);
+  background:#fff; color:#222;
+  font-size:12px; padding:8px 14px; border-radius:12px;
+  white-space:nowrap; z-index:20;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.2s, transform 0.2s;
+  box-shadow:0 2px 8px rgba(0,0,0,0.3);
+}
+.truck-bubble::after{
+  content:''; position:absolute; left:50%; bottom:-8px;
+  transform:translateX(-50%);
+  border:8px solid transparent; border-top-color:#fff;
+}
+.truck-bubble.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
 /* 共通ヘッダー（指示書_共通ヘッダー実装.md対応） */
 .game-header {
   width:100%; max-width:440px;
@@ -91,43 +113,13 @@ body {
 <div class="screen-wrap">
   <img class="bg-img" src="mapback.png" alt="牧場背景">
 
-  <!-- 奥列：建物（小さめ） -->
-  <div class="shadow-blob" style="left:5.12%; top:53.81%; width:11.90%; height:2.33%;"></div>
-  <img class="placed" style="left:4%; top:47%; width:14%;" src="assets/sprites/gyusha_large.png" alt="牛舎（大）">
-  <div class="shadow-blob" style="left:20.88%; top:54.06%; width:9.35%; height:1.90%;"></div>
-  <img class="placed" style="left:20%; top:48.5%; width:11%;" src="assets/sprites/shiryoko.png" alt="飼料庫">
-  <div class="shadow-blob" style="left:33.52%; top:52.47%; width:5.52%; height:2.55%;"></div>
-  <img class="placed" style="left:33%; top:45%; width:6.5%;" src="assets/sprites/silo.png" alt="サイロ">
-  <div class="shadow-blob" style="left:41.84%; top:53.03%; width:8.92%; height:1.37%;"></div>
-  <img class="placed" style="left:41%; top:49%; width:10.5%;" src="assets/sprites/taihisha.png" alt="堆肥舎">
-  <div class="shadow-blob" style="left:54.00%; top:51.87%; width:10.62%; height:1.49%;"></div>
-  <img class="placed" style="left:53%; top:47.5%; width:12.5%;" src="assets/sprites/wrap_wara.png" alt="ラップ藁置き場">
-  <div class="shadow-blob" style="left:67.72%; top:54.15%; width:7.65%; height:1.93%;"></div>
-  <img class="placed" style="left:67%; top:48.5%; width:9%;" src="assets/sprites/sagyogoya.png" alt="作業小屋">
+  <div id="buildingLayer"></div>
 
-  <!-- 中列：車両（中くらい） -->
-  <div class="shadow-blob" style="left:5.20%; top:66.41%; width:12.75%; height:2.19%;"></div>
-  <img class="placed" style="left:4%; top:60%; width:15%;" src="assets/sprites/keitora.png" alt="軽トラック">
-  <div class="shadow-blob" style="left:25.04%; top:64.66%; width:11.05%; height:2.28%;"></div>
-  <img class="placed" style="left:24%; top:58%; width:13%;" src="assets/sprites/tractor.png" alt="トラクター">
-  <div class="shadow-blob" style="left:41.12%; top:64.52%; width:11.90%; height:1.71%;"></div>
-  <img class="placed" style="left:40%; top:59.5%; width:14%;" src="assets/sprites/wheel_loader.png" alt="ホイールローダ">
-  <div class="shadow-blob" style="left:59.12%; top:64.73%; width:11.90%; height:2.47%;"></div>
-  <img class="placed" style="left:58%; top:57.5%; width:14%;" src="assets/sprites/shiryo_mixer.png" alt="飼料ミキサー">
-  <div class="shadow-blob" style="left:76.88%; top:66.05%; width:9.35%; height:1.73%;"></div>
-  <img class="placed" style="left:76%; top:61%; width:11%;" src="assets/sprites/buggy.png" alt="バギー">
+  <div class="shadow-blob keitora-shadow"></div>
+  <img class="placed keitora" id="truck" src="assets/sprites/keitora.png" alt="軽トラック">
+  <div class="truck-bubble" id="truckBubble"></div>
 
-  <!-- 手前列：牛（大きめ） -->
-  <div class="shadow-blob" style="left:9.28%; top:76.80%; width:13.60%; height:2.32%;"></div>
-  <img class="placed" style="left:8%; top:70%; width:16%;" src="assets/sprites/cow_mother.png" alt="母牛">
-  <div class="shadow-blob" style="left:28.88%; top:79.53%; width:9.35%; height:1.89%;"></div>
-  <img class="placed" style="left:28%; top:74%; width:11%;" src="assets/sprites/cow_4m.png" alt="子牛4ヶ月">
-  <div class="shadow-blob" style="left:46.28%; top:78.80%; width:13.60%; height:2.32%;"></div>
-  <img class="placed" style="left:45%; top:72%; width:16%;" src="assets/sprites/cow_mother.png" alt="母牛">
-  <div class="shadow-blob" style="left:65.76%; top:80.78%; width:8.07%; height:1.63%;"></div>
-  <img class="placed" style="left:65%; top:76%; width:9.5%;" src="assets/sprites/cow_2m.png" alt="子牛2ヶ月">
-  <div class="shadow-blob" style="left:79.28%; top:77.80%; width:13.60%; height:2.32%;"></div>
-  <img class="placed" style="left:78%; top:71%; width:16%;" src="assets/sprites/cow_mother.png" alt="母牛">
+  <div id="cowLayer"></div>
 
   <div class="bottom-ui">
     <button class="btn-main" id="btn-explore"></button>
@@ -143,9 +135,103 @@ body {
 <script src="assets/js/i18n.js"></script>
 <script src="assets/js/common.js"></script>
 <script>
+// 建物のスプライト定義（指示書_ホーム画面リニューアル.md対応）
+// state.buildings[key] === true のものだけ描画する。将来、建設屋で建てた施設をここに追加していく。
+const BUILDING_SPRITES = {
+  gyusha_small: {
+    src: 'assets/sprites/gyusha_small.png',
+    style: 'left:22%; top:54%; width:26%; z-index:2;',
+    shadow: 'left:23%; top:68%; width:22%; height:6.5%; z-index:1;',
+  },
+};
+
+function renderBuildings(state) {
+  const layer = document.getElementById('buildingLayer');
+  layer.innerHTML = '';
+  Object.keys(BUILDING_SPRITES).forEach(key => {
+    if (!state.buildings[key]) return;
+    const def = BUILDING_SPRITES[key];
+    const shadow = document.createElement('div');
+    shadow.className = 'shadow-blob';
+    shadow.style.cssText = def.shadow;
+    layer.appendChild(shadow);
+    const img = document.createElement('img');
+    img.className = 'placed';
+    img.style.cssText = def.style;
+    img.src = def.src;
+    img.alt = key;
+    layer.appendChild(img);
+  });
+}
+
+// 牛の固定座標テーブル（牛舎(小)付近に広がる形で最大6頭ぶん用意。頭数が増えたら順番に埋める）
+// 下部ボタンパネル（.bottom-ui）に隠れないよう、top上限は76%程度に収めている
+const COW_SLOTS = [
+  { left: 30, top: 67, width: 13 },
+  { left: 12, top: 71, width: 11 },
+  { left: 48, top: 71, width: 11 },
+  { left: 4,  top: 76, width: 10 },
+  { left: 27, top: 76, width: 10 },
+  { left: 50, top: 76, width: 10 },
+];
+
+// 月齢（age日数÷2）→ 成長段階スプライト（CLAUDE.md記載の5段階：生まれたて・2ヶ月・4ヶ月・10ヶ月・母牛）
+function cowSpriteForAge(ageDays) {
+  const months = ageDays / 2;
+  if (months < 2) return 'assets/sprites/cow_newborn.png';
+  if (months < 4) return 'assets/sprites/cow_2m.png';
+  if (months < 10) return 'assets/sprites/cow_4m.png';
+  if (months < 24) return 'assets/sprites/cow_10m.png';
+  return 'assets/sprites/cow_mother.png';
+}
+
+function renderCows(state) {
+  const layer = document.getElementById('cowLayer');
+  layer.innerHTML = '';
+  state.cows.forEach((cow, i) => {
+    const slot = COW_SLOTS[i];
+    if (!slot) return; // 座標テーブルの範囲を超える頭数は今回は非表示（テーブル拡張で対応）
+
+    const shadow = document.createElement('div');
+    shadow.className = 'shadow-blob';
+    shadow.style.cssText = `left:${slot.left + 1}%; top:${slot.top + 7}%; width:${slot.width - 1}%; height:2%; z-index:3;`;
+    layer.appendChild(shadow);
+
+    const img = document.createElement('img');
+    img.className = 'placed';
+    img.style.cssText = `left:${slot.left}%; top:${slot.top}%; width:${slot.width}%; z-index:4; cursor:pointer;`;
+    img.src = cowSpriteForAge(cow.age);
+    img.alt = cow.name;
+    img.addEventListener('click', () => { location.href = 'barn.html'; });
+    layer.appendChild(img);
+  });
+}
+
+// 軽トラの挨拶（時間帯別セリフ、指示書_ホーム画面リニューアル.md対応）
+function truckGreetingKey() {
+  const h = new Date().getHours();
+  if (h >= 5 && h <= 9) return 'truck_hello_morning';
+  if (h >= 10 && h <= 16) return 'truck_hello_day';
+  if (h >= 17 && h <= 20) return 'truck_hello_evening';
+  return 'truck_hello_night'; // 21-4時
+}
+let truckBubbleTimer = null;
+function showTruckGreeting() {
+  const bubble = document.getElementById('truckBubble');
+  bubble.textContent = t(truckGreetingKey());
+  bubble.classList.add('show');
+  clearTimeout(truckBubbleTimer);
+  truckBubbleTimer = setTimeout(() => bubble.classList.remove('show'), 2500);
+}
+
 (async function () {
   await loadDict();
+  const state = loadLoopState();
   renderHeader('gameHeader');
+  renderBuildings(state);
+  renderCows(state);
+
+  document.getElementById('truck').addEventListener('click', showTruckGreeting);
 
   const btn = document.getElementById('btn-explore');
   btn.textContent = t('go_explore');
