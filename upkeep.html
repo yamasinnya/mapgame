@@ -38,6 +38,16 @@
       state.qualityPoint = Math.max(0, state.qualityPoint - 1);
     }
   });
+
+  // 妊娠経過日数を+1（指示書_プロローグ更新版.md追記対応）
+  // 「18日到達で出産予定日判定」は既存ロジックが実際には存在しないため、今回は日数カウントのみ実装。
+  // 難産イベント判定との接続は別途指示書が必要（下記報告参照）。
+  state.cows.forEach(cow => {
+    if (cow.pregnantDay > 0) {
+      cow.pregnantDay += 1;
+    }
+  });
+
   saveLoopState(state);
   renderHeader('gameHeader');
 

@@ -8,12 +8,14 @@ const LOOP_DEFAULT_STATE = {
     {
       id: 'cow_001',
       name: 'ふうか',
+      gender: 'female',
       age: 48,          // ゲーム内日数（2歳=48日、1年=24日換算）
       seed: 1234,       // ブチ模様の乱数シード（4桁）
       condition: 6,     // 体調（内部値 1-10）。初期値6＝普通
       quality: 2,       // 品質（1-4）。初期値2＝可。今回は変動ロジックなし
       skill: 'zenno',
       type: 'mother',     // 'mother' | 'calf'（床替え等、母牛のみが対象の処理で使用）
+      pregnantDay: 0,    // 妊娠経過日数。0=非妊娠。毎日アップキープで+1（出産判定ロジックは別途実装予定）
       poopCount: 0,      // 💩の数（0〜4）。毎日アップキープで+1、床替えで0にリセット
       diseaseAlert: false, // 😷アイコン表示フラグ。フェーズ3で発動ロジックを実装予定
     },
