@@ -97,10 +97,9 @@ function spendMana(amount) {
 }
 
 // 品質ポイント→品質変動の閾値（薬草獲得→品質ポイントの経路のみ実装。体調差分経路はスコープ外）
-// 将来個別に変える予定のため定数を分けている（現状は全て10）
-const QUALITY_THRESHOLD_TO_KA  = 10; // 劣→可
-const QUALITY_THRESHOLD_TO_RYO = 10; // 可→良
-const QUALITY_THRESHOLD_TO_YU  = 10; // 良→優
+const QUALITY_THRESHOLD_TO_KA  = 30; // 劣→可
+const QUALITY_THRESHOLD_TO_RYO = 50; // 可→良
+const QUALITY_THRESHOLD_TO_YU  = 80; // 良→優
 function qualityThresholdFor(quality) {
   if (quality === 1) return QUALITY_THRESHOLD_TO_KA;
   if (quality === 2) return QUALITY_THRESHOLD_TO_RYO;

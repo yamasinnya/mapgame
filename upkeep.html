@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>やまやま牧場 - アップキープ</title>
+<title>やまやま牧場 - 1日の始まり</title>
 <link rel="stylesheet" href="assets/css/common.css">
 <style>
 .upkeep-text { color:#d8e8c0; font-size:15px; line-height:1.8; margin:8px 0 4px; }
@@ -35,7 +35,7 @@
   }
   state.cows.forEach(cow => {
     if (cow.poopCount >= 4) {
-      state.qualityPoint = Math.max(0, state.qualityPoint - 1);
+      state.qualityPoint = Math.max(0, state.qualityPoint - 5);
     }
   });
 
